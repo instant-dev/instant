@@ -1,4 +1,5 @@
 const { Command } = require('cmnd');
+const Instant = require('@instant.dev/orm')();
 
 const SUPPORTED_OBJECTS = {
   'migration': async (params) => {
@@ -9,13 +10,12 @@ const SUPPORTED_OBJECTS = {
 class NewCommand extends Command {
 
   constructor() {
-    // Name of the command
-    super('example');
+    super('new');
   }
 
   help () {
     return {
-      description: 'Generates new objects: migration',
+      description: 'Generates new objects.\nSupported object_names are: migration',
       args: ['object_name'],
       flags: {flag: 'An example flag'},
       vflags: {vflag: 'An example verbose flag'}
