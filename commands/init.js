@@ -79,16 +79,16 @@ class NewCommand extends Command {
 
     console.log();
 
-    let cfg = {};
-    cfg['local'] = results;
+    let envCfg = results;
 
     try {
-      await Instant.connect(cfg['local']);
+      await Instant.connect(envCfg);
     } catch (e) {
       throw new Error(`Could not connect to database: ${e.message}`);
     }
 
     Instant.enableLogs(2);
+    Instant.Config.write('development', 'main', envCfg);
     Instant.Migrator.enableDangerous();
     Instant.Migrator.Dangerous.reset();
     await Instant.Migrator.Dangerous.prepare();
