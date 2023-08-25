@@ -10,5 +10,8 @@
     "instant": "./index.js"
   },
   "author": "Keith Horwood",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^8.2.6"
+  }
 }
