@@ -7,12 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "instant": "./index.js"
+    "instant": "index.js"
   },
   "author": "Keith Horwood",
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
     "inquirer": "^8.2.6"
-  }
+  },
+  "devDependencies": {},
+  "keywords": []
 }

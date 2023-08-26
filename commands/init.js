@@ -12,10 +12,10 @@ class NewCommand extends Command {
 
   help () {
     return {
-      description: 'Generates new objects.\nSupported object_names are: migration',
+      description: 'Initialize a new Instant.dev project',
       args: ['object_name'],
       flags: {},
-      vflags: {force: 'Force initialization of an Instant.dev project'}
+      vflags: {force: 'overwrites existing migrations and config'}
     };
   }
 
@@ -95,6 +95,7 @@ class NewCommand extends Command {
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();
+    Instant.disconnect();
 
     console.log();
     console.log(colors.bold.green(`Instant.dev initialized successfully!`));
