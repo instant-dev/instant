@@ -21,6 +21,8 @@ class NewCommand extends Command {
 
   async run (params) {
 
+    Instant.enableLogs(2);
+
     const force = ('force' in params.vflags);
 
     if (!force && Instant.isFilesystemInitialized()) {
@@ -82,12 +84,11 @@ class NewCommand extends Command {
     let envCfg = results;
 
     try {
-      await Instant.connect(envCfg);
+      await Instant.connect(envCfg, null);
     } catch (e) {
       throw new Error(`Could not connect to database: ${e.message}`);
     }
 
-    Instant.enableLogs(2);
     Instant.Config.write('development', 'main', envCfg);
     Instant.Migrator.enableDangerous();
     Instant.Migrator.Dangerous.reset();
