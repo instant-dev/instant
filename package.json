@@ -13,8 +13,8 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
+    "inflect": "^0.5.0",
     "inquirer": "^8.2.6"
   },
-  "devDependencies": {},
   "keywords": []
 }

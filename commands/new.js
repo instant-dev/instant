@@ -1,6 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
+const inflect = require('inflect');
 
 const Instant = require('@instant.dev/orm')();
 
@@ -45,14 +46,18 @@ const SUPPORTED_OBJECTS = {
     console.log();
     console.log(`We'll need to enter the following parameters:`);
     console.log(args.map(arg => ` - ${arg.name} (${arg.type})` + (arg.optional ? colors.dim(' [optional]') : '')).join('\n'));
-    console.log();
 
     let insertArgs = [];
     while (args.length) {
+      console.log();
       let arg = args.shift();
-      switch (arg.type) {
-        default:
-        case 'string':
+      if (
+        (cmd === 'createTable' && arg.name === 'table') ||
+        (cmd === 'renameTable' && arg.name === 'newTable')
+      ) {
+        let valid = false;
+        let table;
+        while (!valid) {
           let results = await inquirer.prompt([
             {
               name: arg.name,
@@ -60,9 +65,74 @@ const SUPPORTED_OBJECTS = {
               message: arg.name
             }
           ]);
-          insertArgs.push(results[arg.name]);
-          break;
+          table = results[arg.name];
+          let tableized = inflect.underscore(inflect.pluralize(table));
+          if (arg.name !== tableized) {
+            console.log();
+            console.log(colors.bold.yellow(`Warning:`));
+            console.log(`We recommend using plural, snake_cased names for tables as convention.`);
+            console.log(`You can use the name ${colors.yellow.bold(table)} for your table,`);
+            console.log(`but we recommend using ${colors.green.bold(tableized)}.`);
+            console.log();
+            let results = await inquirer.prompt([
+              {
+                name: arg.name,
+                type: 'list',
+                message: 'Which table name will you use?',
+                choices: [
+                  {
+                    name: `${tableized} (recommended)`,
+                    value: tableized
+                  },
+                  {
+                    name: table,
+                    value: table
+                  }
+                ],
+                loop: false
+              }
+            ]);
+            table = results[arg.name];
+          }
+          if (migration._Schema.findTable(table)) {
+            console.log();
+            console.log(colors.bold.red(`Oops!`));
+            console.log(`Table "${table}" already exists in your schema.`);
+          } else {
+            valid = true;
+          }
+        }
+        insertArgs.push(table);
+      } else if (arg.name === 'table') {
+        // We're doing something to a table that already exists...
+        let tables = Object.keys(migration._Schema.schema.tables);
+        if (!tables.length) {
+          throw new Error(`Can not run "${cmd}", no tables exist in your schema. Try \`createTable\` first.`);
+        }
+        let results = await inquirer.prompt([
+          {
+            name: arg.name,
+            type: 'list',
+            message: arg.name,
+            choices: Object.keys(migration._Schema.schema.tables)
+          }
+        ]);
+        insertArgs.push(results[arg.name]);
+      } else {
+        // handle arbitrary args
       }
+      // switch (arg.type) {
+      //   default:
+      //   case 'string':
+      //     let results = await inquirer.prompt([
+      //       {
+      //         name: arg.name,
+      //         type: 'input',
+      //         message: arg.name
+      //       }
+      //     ]);
+      //     insertArgs.push(results[arg.name]);
+      //     break;
     }
 
     console.log(insertArgs);
