@@ -20,6 +20,11 @@ class FsFastForwardCommand extends Command {
 
   async run (params) {
 
+    const environment = process.env.NODE_ENV || 'development';
+    if (environment !== 'development') {
+      throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
+    }
+
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
         `Instant.dev has not yet been initialized in "${Instant.filesystemRoot()}".\n\n` +

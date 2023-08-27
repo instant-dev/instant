@@ -21,6 +21,11 @@ class NewCommand extends Command {
 
   async run (params) {
 
+    const environment = process.env.NODE_ENV || 'development';
+    if (environment !== 'development') {
+      throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
+    }
+
     Instant.enableLogs(2);
 
     const force = ('force' in params.vflags);
