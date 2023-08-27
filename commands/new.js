@@ -42,11 +42,21 @@ class NewCommand extends Command {
     }
 
     console.log();
-
     Instant.enableLogs(2);
-    await Instant.connect();
+    // Do not load a schema
+    await Instant.connect(null, null);
+    Instant.Migrator.enableDangerous();
+    // Run each filesystem migration to emulate schema state
+    const tmpMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
+    tmpMigrations.forEach(migration => {
+      Instant.Schema.setMigrationId(migration.id);
+      migration.up.forEach(command => {
+        Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
+      });
+    });
+    // Now we have correct schema for creating new migrations
     let result = await supported(Instant, params);
-
+    Instant.Migrator.disableDangerous();
     console.log();
 
   }

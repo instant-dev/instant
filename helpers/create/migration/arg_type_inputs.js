@@ -133,11 +133,7 @@ const argTypeInputs = {
       }
     ]);
     let indexType = results['indexType'];
-    if (indexType === db.adapter.indexTypes[0]) {
-      return null;
-    } else {
-      return indexType;
-    }
+    return indexType;
   },
   'foreignKeyBehavior': async (db, schema, table, column) => {
     let behaviorDefaults = db.adapter.foreignKeyBehaviorDefaults;
