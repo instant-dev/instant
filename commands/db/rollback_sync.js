@@ -3,7 +3,7 @@ const colors = require('colors/safe');
 
 const Instant = require('@instant.dev/orm')();
 
-class DbRollbackCommand extends Command {
+class DbRollbackSyncCommand extends Command {
 
   constructor() {
     super('db', 'rollbackSync');
@@ -11,7 +11,7 @@ class DbRollbackCommand extends Command {
 
   help () {
     return {
-      description: 'Rolls back database migrations to last matching filesystem migration',
+      description: 'Rolls back database migrations to last synced filesystem migration',
       args: [],
       flags: {},
       vflags: {}
@@ -40,4 +40,4 @@ class DbRollbackCommand extends Command {
 
 }
 
-module.exports = DbRollbackCommand;
+module.exports = DbRollbackSyncCommand;
