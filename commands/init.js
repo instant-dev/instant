@@ -12,8 +12,8 @@ class NewCommand extends Command {
 
   help () {
     return {
-      description: 'Initialize a new Instant.dev project',
-      args: ['object_name'],
+      description: 'Initialize a new Instant.dev project with a ["development"]["main"] database',
+      args: [],
       flags: {},
       vflags: {force: 'overwrites existing migrations and config'}
     };
