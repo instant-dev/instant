@@ -46,7 +46,6 @@ class NewCommand extends Command {
     Instant.enableLogs(2);
     await Instant.connect();
     let result = await supported(Instant, params);
-    Instant.disconnect();
 
     console.log();
 
