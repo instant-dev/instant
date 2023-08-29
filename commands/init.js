@@ -83,15 +83,41 @@ class NewCommand extends Command {
         default: 'postgres'
       }
     ]);
+    let envCfg = results;
 
     console.log();
-
-    let envCfg = results;
 
     try {
       await Instant.connect(envCfg, null);
     } catch (e) {
-      throw new Error(`Could not connect to database: ${e.message}`);
+      if (e.message.endsWith(`Database "${envCfg.database}" does not exist.`)) {
+        let database = envCfg.database;
+        console.log();
+        console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
+        console.log(`However, you can create it now if you'd like.`);
+        console.log();
+        let results = await inquirer.prompt([
+          {
+            name: 'create',
+            type: 'confirm',
+            message: `Create database "${database}"?`
+          }
+        ]);
+        if (!results['create']) {
+          throw new Error(`Aborted. Database "${database}" does not exist.`);
+        } else {
+          console.log();
+          delete envCfg.database;
+          Instant.disconnect();
+          await Instant.connect(envCfg, null);
+          await Instant.database().create(database);
+          Instant.disconnect();
+          envCfg.database = database;
+          await Instant.connect(envCfg, null);
+        }
+      } else {
+        throw e;
+      }
     }
 
     Instant.Config.write('development', 'main', envCfg);
