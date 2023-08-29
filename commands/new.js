@@ -41,8 +41,8 @@ class NewCommand extends Command {
     let supported = SUPPORTED_OBJECTS[objectName];
     if (!supported) {
       throw new Error(
-        `"${objectName}" is not a valid object to create.\n` +
-        `Valid objects are ${Object.keys(SUPPORTED_OBJECTS).join(', ')}.`
+        `"${objectName || ''}" is not a valid object to create.\n` +
+        `Valid objects are: ${Object.keys(SUPPORTED_OBJECTS).join(', ')}.`
       );
     }
 
