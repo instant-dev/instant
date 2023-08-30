@@ -4,10 +4,6 @@ const childProcess = require('child_process');
 
 const Instant = require('@instant.dev/orm')();
 
-const SUPPORTED_OBJECTS = {
-  'migration': require('../helpers/create/migration/_index.js')
-};
-
 class NewCommand extends Command {
 
   constructor() {

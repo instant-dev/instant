@@ -2,11 +2,12 @@ const colors = require('colors/safe');
 const inquirer = require('inquirer');
 const inflect = require('inflect');
 
-const argTypeInputs = require('./arg_type_inputs.js');
+const argTypeInputs = require('../arg_type_inputs.js');
+const checkMigrationState = require('../../check_migration_state.js');
 
 module.exports = async (Instant, params) => {
 
-  let name = inflect.underscore(params.args[1] || '');
+  let name = inflect.underscore(params.args[0] || '');
   let migration = await Instant.Migrator.createUnsafe(null, name);
 
   const allowedCommands = migration.constructor.allowedCommands;
@@ -204,29 +205,12 @@ module.exports = async (Instant, params) => {
   }
 
   Instant.Migrator.Dangerous.filesystem.write(migration);
-  let state = await Instant.Migrator.Dangerous.getMigrationState();
-  let diffs = await Instant.Migrator.Dangerous.getTextDiffs();
 
   console.log();
   console.log(colors.bold.green(`Successfully created migration!`));
   console.log();
-  console.log(`Your current migration state is: ${colors.bold.blue(state.status)}`);
-  console.log();
-  console.log(diffs);
-  console.log();
 
-  if (state.status === 'synced') {
-    console.log(`Everything looks up-to-date on migrations!`);
-  } else if (state.status === 'filesystem_ahead') {
-    console.log(`To apply outstanding migrations:`);
-    console.log();
-    console.log(colors.bold.grey(`\t$ instant db:migrate`));
-  } else {
-    console.log(`To rollback the database to last synced point and apply outstanding migrations:`);
-    console.log();
-    console.log(colors.bold.grey(`\t$ instant db:rollbackSync`));
-    console.log(colors.bold.grey(`\t$ instant db:migrate`));
-  }
+  await checkMigrationState(Instant);
 
   return true;
 

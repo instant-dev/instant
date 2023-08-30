@@ -2,23 +2,20 @@ const { Command } = require('cmnd');
 const colors = require('colors/safe');
 
 const Instant = require('@instant.dev/orm')();
+const generateMigration = require('../../helpers/generate/migration/_index.js');
 
-const SUPPORTED_OBJECTS = {
-  'migration': require('../helpers/create/migration/_index.js')
-};
-
-class NewCommand extends Command {
+class GenerateMigrationCommand extends Command {
 
   constructor() {
-    super('new');
+    super('g', 'migration');
   }
 
   help () {
     return {
-      description: 'Generates new objects.\nSupported object_names are: migration',
-      args: ['object_name'],
-      flags: {flag: 'An example flag'},
-      vflags: {vflag: 'An example verbose flag'}
+      description: 'Generates new migrations. If no name provided, one will be generated automatically.',
+      args: ['migration_name'],
+      flags: {},
+      vflags: {}
     };
   }
 
@@ -37,15 +34,6 @@ class NewCommand extends Command {
       );
     }
 
-    let objectName = params.args[0];
-    let supported = SUPPORTED_OBJECTS[objectName];
-    if (!supported) {
-      throw new Error(
-        `"${objectName || ''}" is not a valid object to create.\n` +
-        `Valid objects are: ${Object.keys(SUPPORTED_OBJECTS).join(', ')}.`
-      );
-    }
-
     console.log();
     Instant.enableLogs(2);
     // Do not load a schema
@@ -60,7 +48,7 @@ class NewCommand extends Command {
       });
     });
     // Now we have correct schema for creating new migrations
-    let result = await supported(Instant, params);
+    let result = await generateMigration(Instant, params);
     Instant.Migrator.disableDangerous();
     console.log();
 
@@ -68,4 +56,4 @@ class NewCommand extends Command {
 
 }
 
-module.exports = NewCommand;
+module.exports = GenerateMigrationCommand;
