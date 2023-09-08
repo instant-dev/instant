@@ -1,4 +1,4 @@
 .DS_Store
 node_modules/
-instant/
-instant/db.json
+_instant/
+_instant/db.json
