@@ -1,0 +1,93 @@
+{
+  "id": 2,
+  "name": "create_users_and_access_tokens",
+  "up": [
+    [
+      "createTable",
+      "users",
+      [
+        {
+          "name": "email",
+          "type": "string",
+          "properties": {
+            "nullable": false,
+            "unique": true
+          }
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "properties": {
+            "nullable": false
+          }
+        }
+      ]
+    ],
+    [
+      "createTable",
+      "access_tokens",
+      [
+        {
+          "name": "key",
+          "type": "string",
+          "properties": {
+            "nullable": false,
+            "unique": true
+          }
+        },
+        {
+          "name": "ip_address",
+          "type": "string"
+        },
+        {
+          "name": "user_agent",
+          "type": "string"
+        },
+        {
+          "name": "expires_at",
+          "type": "datetime"
+        },
+        {
+          "name": "is_valid",
+          "type": "boolean"
+        }
+      ]
+    ],
+    [
+      "addColumn",
+      "access_tokens",
+      "user_id",
+      "bigint",
+      {
+        "unique": false
+      }
+    ],
+    [
+      "createForeignKey",
+      "access_tokens",
+      "user_id",
+      "users",
+      "id"
+    ]
+  ],
+  "down": [
+    [
+      "dropForeignKey",
+      "access_tokens",
+      "user_id"
+    ],
+    [
+      "dropColumn",
+      "access_tokens",
+      "user_id"
+    ],
+    [
+      "dropTable",
+      "access_tokens"
+    ],
+    [
+      "dropTable",
+      "users"
+    ]
+  ]
+}

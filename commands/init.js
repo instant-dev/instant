@@ -1,6 +1,9 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
+const fs = require('fs');
+const path = require('path');
+const childProcess = require('child_process');
 
 const Instant = require('@instant.dev/orm')();
 
@@ -15,7 +18,10 @@ class NewCommand extends Command {
       description: 'Initialize a new Instant.dev project with a ["development"]["main"] database',
       args: [],
       flags: {},
-      vflags: {force: 'overwrites existing migrations and config'}
+      vflags: {
+        kit: 'specify a kit to initialize with',
+        force: 'overwrites existing migrations and config'
+      }
     };
   }
 
@@ -40,6 +46,56 @@ class NewCommand extends Command {
         colors.grey.bold(`\t$ instant db:bootstrap\n\n`) +
         `which will empty your database, re-run all migrations, and seed your data.`
       );
+    }
+
+    let kit = null;
+
+    if (params.vflags.kit) {
+      kit = {
+        name: params.vflags.kit,
+        migrations: {},
+        models: {},
+        dependencies: {}
+      };
+      const kitListRoot = path.join(__dirname, '..', 'kits');
+      const kits = fs.readdirSync(kitListRoot);
+      if (kits.indexOf(kit.name) === -1) {
+        throw new Error(`Kit "${kit.name}" not found.\nValid kits are: ${kits.join(', ')}`);
+      }
+      const kitRoot = path.join(kitListRoot, kit.name);
+      const migrationsRoot = path.join(kitRoot, 'migrations');
+      const modelsRoot = path.join(kitRoot, 'models');
+      const depsPath = path.join(kitRoot, 'dependencies.json');
+      if (fs.existsSync(migrationsRoot)) {
+        try {
+          kit.migrations = fs.readdirSync(migrationsRoot)
+            .reduce((m, filename) => {
+              m[filename] = fs.readFileSync(path.join(migrationsRoot, filename));
+              m[filename] = JSON.parse(m[filename].toString());
+            }, {});
+        } catch (e) {
+          throw new Error(`Invalid migrations in "${modelsRoot}":\n${e.message}`);
+        }
+      }
+      if (fs.existsSync(modelsRoot)) {
+        try {
+          kit.models = fs.readdirSync(modelsRoot)
+            .reduce((m, filename) => {
+              m[filename] = fs.readFileSync(path.join(modelsRoot, filename));
+              m[filename] = m[filename].toString();
+            }, {});
+        } catch (e) {
+          throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
+        }
+      }
+      if (fs.existsSync(depsPath)) {
+        let deps = fs.readFileSync(depsPath);
+        try {
+          kit.dependencies = JSON.parse(deps.toString());
+        } catch (e) {
+          throw new Error(`Invalid dependencies in "${depsPath}":\n${e.message}`);
+        }
+      }
     }
 
     console.log();
@@ -125,6 +181,47 @@ class NewCommand extends Command {
     Instant.Migrator.Dangerous.reset();
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
+
+    // Write boilerplate from kit and install dependencies
+    const packagePath = path.join(process.cwd(), 'package.json');
+    const pkg = {
+      name: 'new-instant-project',
+      version: '0.0.0',
+      dependencies: {}
+    };
+    if (fs.existsSync(packagePath)) {
+      let readPackage = fs.readFileSync(packagePath);
+      try {
+        readPackage = JSON.parse(readPackage);
+      } catch (e) {
+        throw new Error(`Could not read "package.json":\n${e.message}`);
+      }
+      Object.keys(readPackage).forEach(key => {
+        pkg[key] = readPackage[key];
+      });
+    }
+
+    if (kit) {
+      Object.keys(kit.migrations).forEach(key => {
+        let migration = kit.migrations[key];
+        Instant.Migrator.Dangerous.filesystem.write(migration);
+      });
+      Object.keys(kit.models).forEach(key => {
+        let model = kit.models[key];
+        Instant.Generator.write(model);
+      });
+      Object.keys(kit.dependencies).forEach(key => {
+        pkg.dependencies[key] = kit.dependencies[key];
+      });
+    }
+    fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
+
+    if (Object.keys(pkg.dependencies).length > 0) {
+      childProcess.execSync(`npm i`, {stdio: 'inherit'});
+    }
+    // childProcess.execSync(`npm i @instant.dev/orm`, {stdio: 'inherit'});
+    childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
+
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
 
