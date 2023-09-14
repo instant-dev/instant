@@ -52,7 +52,7 @@ class NewCommand extends Command {
 
     if (params.vflags.kit) {
       kit = {
-        name: params.vflags.kit,
+        name: params.vflags.kit[0],
         migrations: {},
         models: {},
         dependencies: {}
@@ -72,6 +72,7 @@ class NewCommand extends Command {
             .reduce((m, filename) => {
               m[filename] = fs.readFileSync(path.join(migrationsRoot, filename));
               m[filename] = JSON.parse(m[filename].toString());
+              return m;
             }, {});
         } catch (e) {
           throw new Error(`Invalid migrations in "${modelsRoot}":\n${e.message}`);
@@ -83,6 +84,7 @@ class NewCommand extends Command {
             .reduce((m, filename) => {
               m[filename] = fs.readFileSync(path.join(modelsRoot, filename));
               m[filename] = m[filename].toString();
+              return m;
             }, {});
         } catch (e) {
           throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
@@ -206,27 +208,38 @@ class NewCommand extends Command {
         let migration = kit.migrations[key];
         Instant.Migrator.Dangerous.filesystem.write(migration);
       });
-      Object.keys(kit.models).forEach(key => {
-        let model = kit.models[key];
-        Instant.Generator.write(model);
+      Object.keys(kit.models).forEach(filename => {
+        let model = kit.models[filename];
+        Instant.Generator.write(filename, model);
       });
       Object.keys(kit.dependencies).forEach(key => {
         pkg.dependencies[key] = kit.dependencies[key];
       });
+      if (kit.migrations.length) {
+        await Instant.Migrator.Dangerous.migrate();
+      }
     }
-    fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
-
-    if (Object.keys(pkg.dependencies).length > 0) {
-      childProcess.execSync(`npm i`, {stdio: 'inherit'});
-    }
-    // childProcess.execSync(`npm i @instant.dev/orm`, {stdio: 'inherit'});
-    childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
 
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
 
+    fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
+    if (Object.keys(pkg.dependencies).length > 0) {
+      console.log();
+      console.log(colors.bold.black(`Installing: `) + ` "package.json" dependencies...`);
+      childProcess.execSync(`npm i`, {stdio: 'inherit'});
+    }
+
     console.log();
-    console.log(colors.bold.green(`Instant.dev initialized successfully!`));
+    console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
+    if ('link' in params.vflags) {
+      childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
+    } else {
+      childProcess.execSync(`npm i @instant.dev/orm`, {stdio: 'inherit'});
+    }
+
+    console.log();
+    console.log(colors.bold.green(`Instant.dev initialized successfully${kit ? ` from kit "${kit.name}"` : ``}!`));
     console.log();
     console.log(`You can create a new migration with:`);
     console.log();
