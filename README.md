@@ -1,3 +1,11 @@
 # Instant.dev Command Line Interface
 
-Stay tuned!
+To begin;
+
+```shell
+$ npm i instant.dev -g
+$ cd my-project-dir
+$ instant init
+```
+
+Have fun!
