@@ -1,5 +1,5 @@
 {
-  "id": 2,
+  "id": null,
   "name": "create_users_and_access_tokens",
   "up": [
     [
@@ -68,26 +68,6 @@
       "user_id",
       "users",
       "id"
-    ]
-  ],
-  "down": [
-    [
-      "dropForeignKey",
-      "access_tokens",
-      "user_id"
-    ],
-    [
-      "dropColumn",
-      "access_tokens",
-      "user_id"
-    ],
-    [
-      "dropTable",
-      "access_tokens"
-    ],
-    [
-      "dropTable",
-      "users"
     ]
   ]
 }

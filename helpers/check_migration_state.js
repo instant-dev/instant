@@ -12,15 +12,18 @@ module.exports = async (Instant) => {
 
   if (state.status === 'synced') {
     console.log(`Everything looks up-to-date on migrations!`);
+    return true;
   } else if (state.status === 'filesystem_ahead') {
     console.log(`To apply outstanding migrations:`);
     console.log();
     console.log(colors.bold.grey(`\t$ instant db:migrate`));
+    return false;
   } else {
     console.log(`To rollback the database to last synced point and apply outstanding migrations:`);
     console.log();
     console.log(colors.bold.grey(`\t$ instant db:rollbackSync`));
     console.log(colors.bold.grey(`\t$ instant db:migrate`));
+    return false;
   }
 
 };

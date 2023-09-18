@@ -7,7 +7,9 @@ const childProcess = require('child_process');
 
 const Instant = require('@instant.dev/orm')();
 
-class NewCommand extends Command {
+const KitCommand = require('./kit.js');
+
+class InitCommand extends Command {
 
   constructor() {
     super('init');
@@ -49,55 +51,8 @@ class NewCommand extends Command {
     }
 
     let kit = null;
-
     if (params.vflags.kit) {
-      kit = {
-        name: params.vflags.kit[0],
-        migrations: {},
-        models: {},
-        dependencies: {}
-      };
-      const kitListRoot = path.join(__dirname, '..', 'kits');
-      const kits = fs.readdirSync(kitListRoot);
-      if (kits.indexOf(kit.name) === -1) {
-        throw new Error(`Kit "${kit.name}" not found.\nValid kits are: ${kits.join(', ')}`);
-      }
-      const kitRoot = path.join(kitListRoot, kit.name);
-      const migrationsRoot = path.join(kitRoot, 'migrations');
-      const modelsRoot = path.join(kitRoot, 'models');
-      const depsPath = path.join(kitRoot, 'dependencies.json');
-      if (fs.existsSync(migrationsRoot)) {
-        try {
-          kit.migrations = fs.readdirSync(migrationsRoot)
-            .reduce((m, filename) => {
-              m[filename] = fs.readFileSync(path.join(migrationsRoot, filename));
-              m[filename] = JSON.parse(m[filename].toString());
-              return m;
-            }, {});
-        } catch (e) {
-          throw new Error(`Invalid migrations in "${modelsRoot}":\n${e.message}`);
-        }
-      }
-      if (fs.existsSync(modelsRoot)) {
-        try {
-          kit.models = fs.readdirSync(modelsRoot)
-            .reduce((m, filename) => {
-              m[filename] = fs.readFileSync(path.join(modelsRoot, filename));
-              m[filename] = m[filename].toString();
-              return m;
-            }, {});
-        } catch (e) {
-          throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
-        }
-      }
-      if (fs.existsSync(depsPath)) {
-        let deps = fs.readFileSync(depsPath);
-        try {
-          kit.dependencies = JSON.parse(deps.toString());
-        } catch (e) {
-          throw new Error(`Invalid dependencies in "${depsPath}":\n${e.message}`);
-        }
-      }
+      kit = await KitCommand.prototype.validateKit(params.vflags.kit[0]);
     }
 
     console.log();
@@ -184,62 +139,23 @@ class NewCommand extends Command {
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
 
-    // Write boilerplate from kit and install dependencies
-    const packagePath = path.join(process.cwd(), 'package.json');
-    const pkg = {
-      name: 'new-instant-project',
-      version: '0.0.0',
-      dependencies: {}
-    };
-    if (fs.existsSync(packagePath)) {
-      let readPackage = fs.readFileSync(packagePath);
-      try {
-        readPackage = JSON.parse(readPackage);
-      } catch (e) {
-        throw new Error(`Could not read "package.json":\n${e.message}`);
-      }
-      Object.keys(readPackage).forEach(key => {
-        pkg[key] = readPackage[key];
-      });
-    }
-
     if (kit) {
-      Object.keys(kit.migrations).forEach(key => {
-        let migration = kit.migrations[key];
-        Instant.Migrator.Dangerous.filesystem.write(migration);
-      });
-      Object.keys(kit.models).forEach(filename => {
-        let model = kit.models[filename];
-        Instant.Generator.write(filename, model);
-      });
-      Object.keys(kit.dependencies).forEach(key => {
-        pkg.dependencies[key] = kit.dependencies[key];
-      });
-      if (kit.migrations.length) {
-        await Instant.Migrator.Dangerous.migrate();
-      }
+      await KitCommand.prototype.run.call(this, params, Instant, kit);
     }
 
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
-
-    fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
-    if (Object.keys(pkg.dependencies).length > 0) {
-      console.log();
-      console.log(colors.bold.black(`Installing: `) + ` "package.json" dependencies...`);
-      childProcess.execSync(`npm i`, {stdio: 'inherit'});
-    }
 
     console.log();
     console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
     if ('link' in params.vflags) {
       childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
     } else {
-      childProcess.execSync(`npm i @instant.dev/orm`, {stdio: 'inherit'});
+      childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
     }
 
     console.log();
-    console.log(colors.bold.green(`Instant.dev initialized successfully${kit ? ` from kit "${kit.name}"` : ``}!`));
+    console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully${kit ? ` from kit "${colors.bold.green(kit.name)}"` : ``}!`);
     console.log();
     console.log(`You can create a new migration with:`);
     console.log();
@@ -259,4 +175,4 @@ class NewCommand extends Command {
 
 }
 
-module.exports = NewCommand;
+module.exports = InitCommand;
