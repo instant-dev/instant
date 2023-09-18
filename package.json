@@ -1,6 +1,6 @@
 {
   "name": "instant.dev",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Instant.dev Command Line Interface",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
   "author": "Keith Horwood",
   "license": "MIT",
   "dependencies": {
+    "@instant.dev/orm": "^0.0.1",
     "colors": "^1.4.0",
     "inflect": "^0.5.0",
     "inquirer": "^8.2.6"
