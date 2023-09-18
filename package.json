@@ -1,6 +1,6 @@
 {
   "name": "instant.dev",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Instant.dev Command Line Interface",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@instant.dev/orm": "^0.0.1",
+    "cmnd": "^0.4.0",
     "colors": "^1.4.0",
     "inflect": "^0.5.0",
     "inquirer": "^8.2.6"
