@@ -78,4 +78,8 @@ class AccessToken extends InstantORM.Core.Model {
 
 }
 
+// hides a field: prevent output via .toJSON()
+AccessToken.hides('id');
+AccessToken.hides('user_id');
+
 module.exports = AccessToken;

@@ -69,7 +69,11 @@ class User extends InstantORM.Core.Model {
     try {
       user = await user.save();
     } catch (e) {
-      if (e.details._query && e.details.query.includes('unique constraint \"users_email_unique\"')) {
+      if (
+        e.details._query &&
+        e.details._query[0] &&
+        e.details._query[0].includes('unique constraint \"users_email_unique\"')
+      ) {
         throw new Error(`User with email "${body.email}" already exists`);
       } else {
         throw e;
