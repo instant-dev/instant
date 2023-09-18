@@ -7,8 +7,6 @@ const childProcess = require('child_process');
 
 const Instant = require('@instant.dev/orm')();
 
-const KitCommand = require('./kit.js');
-
 class InitCommand extends Command {
 
   constructor() {
@@ -21,7 +19,6 @@ class InitCommand extends Command {
       args: [],
       flags: {},
       vflags: {
-        kit: 'specify a kit to initialize with',
         force: 'overwrites existing migrations and config'
       }
     };
@@ -48,11 +45,6 @@ class InitCommand extends Command {
         colors.grey.bold(`\t$ instant db:bootstrap\n\n`) +
         `which will empty your database, re-run all migrations, and seed your data.`
       );
-    }
-
-    let kit = null;
-    if (params.vflags.kit) {
-      kit = await KitCommand.prototype.validateKit(params.vflags.kit[0]);
     }
 
     console.log();
@@ -138,11 +130,6 @@ class InitCommand extends Command {
     Instant.Migrator.Dangerous.reset();
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
-
-    if (kit) {
-      await KitCommand.prototype.run.call(this, params, Instant, kit);
-    }
-
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
 
@@ -155,7 +142,7 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully${kit ? ` from kit "${colors.bold.green(kit.name)}"` : ``}!`);
+    console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully!`);
     console.log();
     console.log(`You can create a new migration with:`);
     console.log();

@@ -4,8 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 
-// We can run this as a subcommand, so cache this
-const InstantObj = require('@instant.dev/orm')();
+const Instant = require('@instant.dev/orm')();
 
 const checkMigrationState = require('../helpers/check_migration_state.js');
 
@@ -76,7 +75,7 @@ class KitCommand extends Command {
     return kit;
   }
 
-  async run (params, Instant = InstantObj, kit = null) {
+  async run (params) {
 
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {
@@ -91,24 +90,19 @@ class KitCommand extends Command {
       );
     }
 
-    // Are we extending this? eg running from "init"
-    let extended = kit !== null;
-
     console.log();
     console.log(colors.bold.black(`Installing: `) + `kit "${colors.bold.green(kit ? kit.name : (params.args[0] || ''))}"...`);
     console.log();
 
-    if (!extended) {
-      Instant.enableLogs(2);
-      await Instant.connect();
-      Instant.Migrator.enableDangerous();
-      let canMigrate = await checkMigrationState(Instant);
-      if (!canMigrate) {
-        throw new Error(`Your migration state must be up to date to install a kit`);
-      }
+    Instant.enableLogs(2);
+    await Instant.connect();
+    Instant.Migrator.enableDangerous();
+    let canMigrate = await checkMigrationState(Instant);
+    if (!canMigrate) {
+      throw new Error(`Your migration state must be up to date to install a kit`);
     }
 
-    kit = kit || (await this.validateKit(params.args[0]));
+    const kit = await this.validateKit(params.args[0]);
 
     // Write boilerplate from kit and install dependencies
     const packagePath = path.join(process.cwd(), 'package.json');
@@ -128,9 +122,6 @@ class KitCommand extends Command {
         pkg[key] = readPackage[key];
       });
     }
-
-    // Run any outstanding migrations...
-    await Instant.Migrator.Dangerous.migrate();
 
     for (const migrationJSON of kit.migrations) {
       let migration = await Instant.Migrator.createFromTemplate(migrationJSON);
@@ -156,14 +147,11 @@ class KitCommand extends Command {
       console.log(colors.bold.black(`Installing: `) + `"package.json" dependencies "${deps.join(", ")}"`);
       childProcess.execSync(`npm i`, {stdio: 'inherit'});
     }
-
-    if (!extended) {
-      if ('link' in params.vflags) {
-        childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
-      }
-      Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+    if ('link' in params.vflags) {
+      childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
     }
+    Instant.Migrator.disableDangerous();
+    Instant.disconnect();
 
     console.log();
     console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully!`);
