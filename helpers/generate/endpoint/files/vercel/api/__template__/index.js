@@ -20,7 +20,9 @@ module.exports = async (req, res) => {
 
     let modelNames;
     try {
-      modelNames = await ModelName.query(req.query).select();
+      modelNames = await ModelName.query()
+        .where(req.query)
+        .select();
     } catch (e) {
       return Errors.badRequest(req, res, e);
     }
