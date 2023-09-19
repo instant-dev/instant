@@ -4,8 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 
-const Instant = require('@instant.dev/orm')();
-
+const loadInstant = require('../helpers/load_instant.js');
 const checkMigrationState = require('../helpers/check_migration_state.js');
 const fileWriter = require('../helpers/file_writer.js');
 
@@ -83,6 +82,8 @@ class KitCommand extends Command {
   }
 
   async run (params) {
+
+    const Instant = loadInstant(true);
 
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {

@@ -1,7 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 
-const Instant = require('@instant.dev/orm')();
+const loadInstant = require('../../helpers/load_instant.js');
 
 class DbMigrateCommand extends Command {
 
@@ -19,6 +19,8 @@ class DbMigrateCommand extends Command {
   }
 
   async run (params) {
+
+    const Instant = loadInstant(true);
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(

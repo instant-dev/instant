@@ -2,7 +2,7 @@ const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const childProcess = require('child_process');
 
-const Instant = require('@instant.dev/orm')();
+const loadInstant = require('../helpers/load_instant.js');
 
 class NewCommand extends Command {
 
@@ -24,6 +24,8 @@ class NewCommand extends Command {
   }
 
   async run (params) {
+
+    const Instant = loadInstant(true);
 
     const environment = process.env.NODE_ENV || 'development';
 

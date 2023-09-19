@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 
-const Instant = require('@instant.dev/orm')();
+const loadInstant = require('../helpers/load_instant.js');
 
 class InitCommand extends Command {
 
@@ -29,6 +29,18 @@ class InitCommand extends Command {
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {
       throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
+    }
+
+    let Instant = loadInstant();
+    if (!Instant) {
+      console.log();
+      console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
+      if ('link' in params.vflags) {
+        childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
+      } else {
+        childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
+      }
+      Instant = loadInstant(true);
     }
 
     Instant.enableLogs(2);
@@ -132,14 +144,6 @@ class InitCommand extends Command {
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
-
-    console.log();
-    console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
-    if ('link' in params.vflags) {
-      childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
-    } else {
-      childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
-    }
 
     console.log();
     console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully!`);

@@ -1,7 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 
-const Instant = require('@instant.dev/orm')();
+const loadInstant = require('../../helpers/load_instant.js');
 const generateMigration = require('../../helpers/generate/migration/_index.js');
 
 class GenerateMigrationCommand extends Command {
@@ -20,6 +20,8 @@ class GenerateMigrationCommand extends Command {
   }
 
   async run (params) {
+
+    const Instant = loadInstant(true);
 
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {

@@ -1,7 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 
-const Instant = require('@instant.dev/orm')();
+const loadInstant = require('../../helpers/load_instant.js');
 
 class FsRewindCommand extends Command {
 
@@ -19,6 +19,8 @@ class FsRewindCommand extends Command {
   }
 
   async run (params) {
+
+    const Instant = loadInstant(true);
 
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {
