@@ -49,6 +49,8 @@ class GenerateModelCommand extends Command {
         Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
       });
     });
+    // Apply changes
+    Instant.Schema.update();
     // Now we have correct schema for creating new migrations
     let result = await generateModel(Instant, params);
     Instant.Migrator.disableDangerous();

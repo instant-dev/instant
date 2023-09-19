@@ -38,7 +38,22 @@ class GenerateEndpointCommand extends Command {
       );
     }
 
-    // Now we have correct schema for creating new migrations
+    console.log();
+    Instant.enableLogs(2);
+    // Do not load a schema
+    await Instant.connect(null, null);
+    Instant.Migrator.enableDangerous();
+    // Run each filesystem migration to emulate schema state
+    const tmpMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
+    tmpMigrations.forEach(migration => {
+      Instant.Schema.setMigrationId(migration.id);
+      migration.up.forEach(command => {
+        Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
+      });
+    });
+    // Apply changes
+    Instant.Schema.update();
+    // Now we have correct schema for creating new endpoints
     let result = await generateEndpoint(Instant, params);
 
   }

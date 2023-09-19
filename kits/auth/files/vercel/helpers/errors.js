@@ -30,6 +30,13 @@ module.exports = {
       }
     });
   },
+  notFound: (req, res) => {
+    return res.status(404).json({
+      error: {
+        message: 'Not Found'
+      }
+    });
+  },
   notImplemented: (req, res) => {
     return res.status(501).json({
       error: {

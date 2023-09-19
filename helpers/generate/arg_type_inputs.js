@@ -1,6 +1,6 @@
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
-const inflect = require('inflect');
+const inflect = require('i')();
 
 const argTypeInputs = {
   'column[]': async (db, schema, table) => {
