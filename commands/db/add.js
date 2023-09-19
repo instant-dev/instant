@@ -24,7 +24,9 @@ class DbAddCommand extends Command {
 
   async run (params) {
 
+    const Instant = loadInstant(true);
     const environment = process.env.NODE_ENV || 'development';
+    
     if (environment !== 'development') {
       throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
     }
@@ -42,8 +44,6 @@ class DbAddCommand extends Command {
         `Try running \`instant init\` instead.`
       );
     }
-
-    const Instant = loadInstant(true);
 
     Instant.enableLogs(2);
 
@@ -164,6 +164,13 @@ class DbAddCommand extends Command {
       } else {
         throw e;
       }
+    }
+
+    let migrationsEnabled = await Instant.Migrator.isEnabled();
+    if (!migrationsEnabled) {
+      Instant.Migrator.enableDangerous();
+      await Instant.Migrator.Dangerous.prepare();
+      Instant.Migrator.disableDangerous();
     }
 
     Instant.Config.write(env, db, envCfg);

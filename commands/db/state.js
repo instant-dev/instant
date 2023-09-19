@@ -11,17 +11,21 @@ class DbStateCommand extends Command {
   }
 
   help () {
+    const environment = process.env.NODE_ENV || 'development';
     return {
       description: 'Retrieves the current migration state of the database',
       args: [],
       flags: {},
-      vflags: {}
+      vflags: {
+        env: `Environment to connect to (default: ${environment})`
+      }
     };
   }
 
   async run (params) {
 
     const Instant = loadInstant(true);
+    const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -31,11 +35,15 @@ class DbStateCommand extends Command {
       );
     }
 
+    let env = params.vflags.env || environment;
+    let db = 'main';
+    let cfg = Instant.Config.read(env, db);
+
     console.log();
     Instant.enableLogs(2);
-    await Instant.connect();
+    await Instant.connect(cfg);
     Instant.Migrator.enableDangerous();
-    await checkMigrationState(Instant);
+    await checkMigrationState(Instant, env, environment);
     Instant.Migrator.disableDangerous();
     console.log();
 

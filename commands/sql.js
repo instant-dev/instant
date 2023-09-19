@@ -26,7 +26,6 @@ class NewCommand extends Command {
   async run (params) {
 
     const Instant = loadInstant(true);
-
     const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
@@ -39,7 +38,6 @@ class NewCommand extends Command {
 
     let env = params.vflags.env || environment;
     let db = params.vflags.db || 'main';
-
     let cfg = Instant.Config.read(env, db);
 
     console.log();
