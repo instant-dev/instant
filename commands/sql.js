@@ -42,13 +42,19 @@ class NewCommand extends Command {
 
     let cfg = Instant.Config.read(env, db);
 
+    console.log();
+    console.log(`Connecting to SQL interface for _instant/db.json["${env}"]["${db}"] ...`);
+    console.log();
+
     childProcess.spawnSync(
       (
-        (
-          cfg.password
-            ? `PGPASSWORD=${cfg.password} `
-            : ``
-          ) + `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
+        cfg.connectionString
+          ? `psql ${cfg.connectionString}`
+          : (
+              cfg.password
+                ? `PGPASSWORD=${cfg.password} `
+                : ``
+            ) + `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
       ),
       {
         stdio: 'inherit',
