@@ -23,11 +23,49 @@ class KitCommand extends Command {
     };
   }
 
+  determineFramework () {
+    if (fs.existsSync('.vercel')) {
+      return 'vercel';
+    } else if (fs.existsSync('stdlib.json')) {
+      return 'autocode';
+    } else {
+      return 'default';
+    }
+  }
+
+  readRecursive (root, pathname = '', files = {}) {
+    let filenames = fs.readdirSync(path.join(root, pathname));
+    filenames.forEach(filename => {
+      let filepath = [pathname, filename].join('/');
+      let fullpath = path.join(root, filepath);
+      let stat = fs.statSync(fullpath);
+      if (stat.isDirectory()) {
+        this.readRecursive(root, filepath, files);
+      } else {
+        files[filepath] = fs.readFileSync(fullpath);
+      }
+    });
+    return files;
+  }
+
+  writeFile (filename, buffer) {
+    let paths = filename.split('/').slice(1, -1);
+    for (let i = 1; i <= paths.length; i++) {
+      let pathname = paths.slice(0, i).join('/');
+      if (!fs.existsSync(pathname)) {
+        fs.mkdirSync(pathname);
+      }
+    }
+    fs.writeFileSync(path.join('.', filename), buffer);
+  }
+
   async validateKit (name) {
     let kit = {
       name: (name || '').trim(),
+      framework: this.determineFramework(),
       migrations: {},
       models: {},
+      files: {},
       dependencies: {}
     };
     const kitListRoot = path.join(__dirname, '..', 'kits');
@@ -40,6 +78,7 @@ class KitCommand extends Command {
     const kitRoot = path.join(kitListRoot, kit.name);
     const migrationsRoot = path.join(kitRoot, 'migrations');
     const modelsRoot = path.join(kitRoot, 'models');
+    const filesRoot = path.join(kitRoot, 'files', kit.framework);
     const depsPath = path.join(kitRoot, 'dependencies.json');
     if (fs.existsSync(migrationsRoot)) {
       try {
@@ -63,6 +102,9 @@ class KitCommand extends Command {
       } catch (e) {
         throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
       }
+    }
+    if (fs.existsSync(filesRoot)) {
+      kit.files = this.readRecursive(filesRoot);
     }
     if (fs.existsSync(depsPath)) {
       let deps = fs.readFileSync(depsPath);
@@ -91,7 +133,7 @@ class KitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.black(`Installing: `) + `kit "${colors.bold.green(kit ? kit.name : (params.args[0] || ''))}"...`);
+    console.log(colors.bold.black(`Installing: `) + `kit "${colors.bold.green(params.args[0] || '')}"...`);
     console.log();
 
     Instant.enableLogs(2);
@@ -131,6 +173,10 @@ class KitCommand extends Command {
       let model = kit.models[filename];
       Instant.Generator.write(filename, model);
     }
+    for (const filename in kit.files) {
+      console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" for framework "${kit.framework}" ...`);
+      this.writeFile(filename, kit.files[filename]);
+    }
     for (const key in kit.dependencies) {
       pkg.dependencies[key] = kit.dependencies[key];
     }
@@ -140,6 +186,9 @@ class KitCommand extends Command {
       await Instant.Migrator.Dangerous.migrate();
     }
 
+    Instant.Migrator.disableDangerous();
+    Instant.disconnect();
+
     fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
     let deps = Object.keys(pkg.dependencies);
     if (deps.length > 0) {
@@ -148,13 +197,13 @@ class KitCommand extends Command {
       childProcess.execSync(`npm i`, {stdio: 'inherit'});
     }
     if ('link' in params.vflags) {
+      console.log();
+      console.log(colors.bold.black(`Installing: `) + `Linking @instant.dev/orm ...`);
       childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
     }
-    Instant.Migrator.disableDangerous();
-    Instant.disconnect();
 
     console.log();
-    console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully!`);
+    console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully for framework "${colors.bold.green(kit.framework)}"!`);
     console.log();
 
     return void 0;
