@@ -12,7 +12,6 @@
   "author": "Keith Horwood",
   "license": "MIT",
   "dependencies": {
-    "@instant.dev/orm": "^0.0.1",
     "cmnd": "^0.4.0",
     "colors": "^1.4.0",
     "inflect": "^0.5.0",
