@@ -7,6 +7,7 @@ const childProcess = require('child_process');
 const Instant = require('@instant.dev/orm')();
 
 const checkMigrationState = require('../helpers/check_migration_state.js');
+const fileWriter = require('../helpers/file_writer.js');
 
 class KitCommand extends Command {
 
@@ -23,46 +24,10 @@ class KitCommand extends Command {
     };
   }
 
-  determineFramework () {
-    if (fs.existsSync('.vercel')) {
-      return 'vercel';
-    } else if (fs.existsSync('stdlib.json')) {
-      return 'autocode';
-    } else {
-      return 'default';
-    }
-  }
-
-  readRecursive (root, pathname = '', files = {}) {
-    let filenames = fs.readdirSync(path.join(root, pathname));
-    filenames.forEach(filename => {
-      let filepath = [pathname, filename].join('/');
-      let fullpath = path.join(root, filepath);
-      let stat = fs.statSync(fullpath);
-      if (stat.isDirectory()) {
-        this.readRecursive(root, filepath, files);
-      } else {
-        files[filepath] = fs.readFileSync(fullpath);
-      }
-    });
-    return files;
-  }
-
-  writeFile (filename, buffer) {
-    let paths = filename.split('/').slice(1, -1);
-    for (let i = 1; i <= paths.length; i++) {
-      let pathname = paths.slice(0, i).join('/');
-      if (!fs.existsSync(pathname)) {
-        fs.mkdirSync(pathname);
-      }
-    }
-    fs.writeFileSync(path.join('.', filename), buffer);
-  }
-
   async validateKit (name) {
     let kit = {
       name: (name || '').trim(),
-      framework: this.determineFramework(),
+      framework: fileWriter.determineFramework(),
       migrations: {},
       models: {},
       files: {},
@@ -104,7 +69,7 @@ class KitCommand extends Command {
       }
     }
     if (fs.existsSync(filesRoot)) {
-      kit.files = this.readRecursive(filesRoot);
+      kit.files = fileWriter.readRecursive(filesRoot);
     }
     if (fs.existsSync(depsPath)) {
       let deps = fs.readFileSync(depsPath);
@@ -175,7 +140,7 @@ class KitCommand extends Command {
     }
     for (const filename in kit.files) {
       console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" for framework "${kit.framework}" ...`);
-      this.writeFile(filename, kit.files[filename]);
+      fileWriter.writeFile(filename, kit.files[filename]);
     }
     for (const key in kit.dependencies) {
       pkg.dependencies[key] = kit.dependencies[key];
