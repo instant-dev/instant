@@ -130,14 +130,17 @@ class DbAddCommand extends Command {
       {
         name: 'tunnel',
         type: 'list',
-        message: `Does this database require an SSH tunnel?\nNote: If you\'re not sure, the answer is probably no.`,
+        message: `Is this Database inside of a VPC?\n` +
+          `Does it require an SSH tunnel to connect to remotely?\n` +
+          `If you aren't sure, the answer is probably no.`,
+        default: false,
         choices: [
           {
-            name: `No ${colors.dim(`(e.g. Vercel, Supabase, Neon)`)}`,
+            name: `No, I can access it on the open web ${colors.dim(`(e.g. Vercel Postgres, Railway, Supabase, Neon)`)}`,
             value: false
           },
           {
-            name: `Yes ${colors.dim(`(e.g. AWS)`)}`,
+            name: `Yes, it is inside of a VPC ${colors.dim(`(e.g. AWS RDS)`)}`,
             value: true
           }
         ],
@@ -146,6 +149,33 @@ class DbAddCommand extends Command {
     ]);
 
     if (requiresTunnel.tunnel) {
+      console.log();
+      let vpc = await inquirer.prompt([
+        {
+          name: 'in_vpc',
+          type: 'list',
+          message: `Will your project be deployed inside the VPC?\n` +
+            `If so, we only need the tunnel to connect to the database remotely.`,
+          default: true,
+          choices: [
+            {
+              name: `Yes, I will be deploying it inside of the VPC ${colors.dim(`(e.g. AWS)`)}`,
+              value: true
+            },
+            {
+              name: `No, I am deploying with a host outside of the VPC ${colors.dim(`(e.g. Vercel Serverless, Railway)`)}`,
+              value: false
+            }
+          ],
+          loop: false
+        }
+      ]);
+      envCfg.in_vpc = vpc.in_vpc;
+      console.log();
+      console.log(colors.bold.green(`Great!`));
+      console.log(`So your database is in a VPC, and you ${colors.bold(envCfg.in_vpc ? 'will' : 'will not')} be deploying your project inside that VPC.`);
+      console.log(`We just need the SSH connection details of a server inside the VPC to be able to connect remotely.`);
+      console.log();
       let tunnel = await inquirer.prompt([
         {
           name: 'user',
@@ -172,7 +202,10 @@ class DbAddCommand extends Command {
           default: 'database.pem'
         }
       ]);
+      envCfg.in_vpc = tunnel.in_vpc;
+      delete tunnel.in_vpc;
       envCfg.tunnel = tunnel;
+      console.log();
     }
 
     try {
