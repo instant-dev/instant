@@ -10,8 +10,8 @@ module.exports = async (context) => {
   const ModelName = Instant.Model('ModelName');
 
   let modelNames = await ModelName.query()
-      .where(context.params)
-      .select();
+    .where(context.params)
+    .select();
   return modelNames;
 
 };

@@ -10,6 +10,7 @@ const fileWriter = require('../../file_writer.js');
 module.exports = async (Instant, params) => {
 
   const framework = fileWriter.determineFramework();
+
   const pathname = path.join(__dirname, 'files', framework);
   if (!fs.existsSync(pathname)) {
     throw new Error(`No endpoint template found for framework "${colors.bold.green(framework)}"`);
@@ -30,6 +31,10 @@ module.exports = async (Instant, params) => {
   names.model_name = inflect.tableize(names.modelName);
   names.model_names = inflect.tableize(names.modelNames);
 
+  console.log();
+  console.log(colors.bold.black(`Generating:`) + ` Endpoints for "${colors.bold.green(names.ModelName)}" for framework "${colors.bold.green(framework)}" ...`);
+  console.log();
+
   const files = fileWriter.readRecursive(pathname);
   for (const filename in files) {
     let newFilename = filename;
@@ -47,7 +52,7 @@ module.exports = async (Instant, params) => {
       ].forEach(key => fileString = fileString.replaceAll(key, names[key]));
       fileData = Buffer.from(fileString);
     }
-    console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${newFilename}" for framework "${framework}" ...`);
+    console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${newFilename}" ...`);
     let result = fileWriter.writeFile(newFilename, fileData, false);
     if (!result) {
       console.log(colors.bold.black(`FrameworkFileWriter:`) +  colors.yellow(` Warn: Skipped "${newFilename}" (already exists)`));
@@ -55,7 +60,7 @@ module.exports = async (Instant, params) => {
   }
 
   console.log();
-  console.log(colors.bold.green(`Successfully created endpoint for "${names.ModelName}"!`));
+  console.log(colors.bold.green(`Success!`) + ` Created endpoint for "${colors.bold.green(names.ModelName)}" for framework "${colors.bold.green(framework)}"!`);
   console.log();
 
   return true;
