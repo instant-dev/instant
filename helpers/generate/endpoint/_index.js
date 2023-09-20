@@ -12,7 +12,7 @@ module.exports = async (Instant, params) => {
   const framework = fileWriter.determineFramework();
   const pathname = path.join(__dirname, 'files', framework);
   if (!fs.existsSync(pathname)) {
-    throw new Error(`No endpoint template found for framework "${framework}"`);
+    throw new Error(`No endpoint template found for framework "${colors.bold.green(framework)}"`);
   }
   const modelFor = ((params.vflags.for || [])[0] || '');
   if (!modelFor) {
@@ -24,8 +24,10 @@ module.exports = async (Instant, params) => {
   }
   const names = {};
   names.ModelName = inflect.classify(modelFor);
+  names.ModelNames = inflect.pluralize(names.ModelName);
   names.modelName = names.ModelName[0].toLowerCase() + names.ModelName.slice(1);
   names.modelNames = inflect.pluralize(names.modelName);
+  names.model_name = inflect.tableize(names.modelName);
   names.model_names = inflect.tableize(names.modelNames);
 
   const files = fileWriter.readRecursive(pathname);
@@ -35,7 +37,14 @@ module.exports = async (Instant, params) => {
     if (filename.match(/\/__template__([\/\.])/gi)) {
       newFilename = filename.replace(/\/__template__([\/\.])/gi, `/${names.model_names}$1`);
       let fileString = files[filename].toString();
-      Object.keys(names).forEach(key => fileString = fileString.replaceAll(key, names[key]));
+      [
+        'ModelNames',
+        'ModelName',
+        'modelNames',
+        'modelName',
+        'model_names',
+        'model_name'
+      ].forEach(key => fileString = fileString.replaceAll(key, names[key]));
       fileData = Buffer.from(fileString);
     }
     console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${newFilename}" for framework "${framework}" ...`);

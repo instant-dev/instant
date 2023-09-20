@@ -49,8 +49,8 @@ module.exports = async (req, res) => {
     let modelName;
     try {
       modelName = await ModelName.find(req.query.id);
-      blogPost.read(req.body);
-      await blogPost.save();
+      modelName.read(req.body);
+      await modelName.save();
     } catch (e) {
       if (e.notFound) {
         return Errors.notFound(req, res);
