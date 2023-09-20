@@ -1,5 +1,6 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
+const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
@@ -42,7 +43,8 @@ class KitCommand extends Command {
     const kitRoot = path.join(kitListRoot, kit.name);
     const migrationsRoot = path.join(kitRoot, 'migrations');
     const modelsRoot = path.join(kitRoot, 'models');
-    const filesRoot = path.join(kitRoot, 'files', kit.framework);
+    const filesRoot = path.join(kitRoot, 'files');
+    const frameworkFilesRoot = path.join(kitRoot, 'files', kit.framework);
     const depsPath = path.join(kitRoot, 'dependencies.json');
     if (fs.existsSync(migrationsRoot)) {
       try {
@@ -68,7 +70,20 @@ class KitCommand extends Command {
       }
     }
     if (fs.existsSync(filesRoot)) {
-      kit.files = fileWriter.readRecursive(filesRoot);
+      if (fs.existsSync(frameworkFilesRoot)) {
+        kit.files = fileWriter.readRecursive(frameworkFilesRoot);
+      } else {
+        console.log();
+        let proceedResult = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'proceed',
+          message: `This kit is missing default files for your framework "${colors.bold.green(kit.framework)}"\n` +
+            `Would you like to proceed anyway?`
+        }]);
+        if (!proceedResult.proceed) {
+          throw new Error(`kit installation aborted`);
+        }
+      }
     }
     if (fs.existsSync(depsPath)) {
       let deps = fs.readFileSync(depsPath);
@@ -99,7 +114,12 @@ class KitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.black(`Installing: `) + `kit "${colors.bold.green(params.args[0] || '')}"...`);
+    console.log(
+      colors.bold.black(`Installing: `) + `kit "${colors.bold.green(params.args[0] || '')}" ` +
+      `for framework "${colors.bold.green(fileWriter.determineFramework())}"...`
+    );
+
+    const kit = await this.validateKit(params.args[0]);
     console.log();
 
     Instant.enableLogs(2);
@@ -109,8 +129,6 @@ class KitCommand extends Command {
     if (!canMigrate) {
       throw new Error(`Your migration state must be up to date to install a kit`);
     }
-
-    const kit = await this.validateKit(params.args[0]);
 
     // Write boilerplate from kit and install dependencies
     const packagePath = path.join(process.cwd(), 'package.json');

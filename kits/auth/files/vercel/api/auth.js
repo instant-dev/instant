@@ -22,6 +22,17 @@ module.exports = async (req, res) => {
     }
     return res.status(200).json(user.joined('accessTokens')[0]);
 
+  } else if (req.method === 'DELETE') {
+    // Logs a user out
+
+    let accessToken
+    try {
+      accessToken = await User.logout(req.headers);
+    } catch (e) {
+      return Errors.unauthorized(req, res, e);
+    }
+    return res.status(200).json(accessToken);
+
   } else {
 
     return Errors.notImplemented(req, res);
