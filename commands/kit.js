@@ -130,31 +130,9 @@ class KitCommand extends Command {
         pkg[key] = readPackage[key];
       });
     }
-
-    for (const migrationJSON of kit.migrations) {
-      let migration = await Instant.Migrator.createFromTemplate(migrationJSON);
-      Instant.Migrator.Dangerous.filesystem.write(migration);
-    }
-    for (const filename in kit.models) {
-      let model = kit.models[filename];
-      Instant.Generator.write(filename, model);
-    }
-    for (const filename in kit.files) {
-      console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" for framework "${kit.framework}" ...`);
-      fileWriter.writeFile(filename, kit.files[filename]);
-    }
     for (const key in kit.dependencies) {
       pkg.dependencies[key] = kit.dependencies[key];
     }
-
-    // Run any new migrations
-    if (kit.migrations.length) {
-      await Instant.Migrator.Dangerous.migrate();
-    }
-
-    Instant.Migrator.disableDangerous();
-    Instant.disconnect();
-
     fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2));
     let deps = Object.keys(pkg.dependencies);
     if (deps.length > 0) {
@@ -167,6 +145,28 @@ class KitCommand extends Command {
       console.log(colors.bold.black(`Installing: `) + `Linking @instant.dev/orm ...`);
       childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
     }
+
+    // Write migrations, models and files
+    for (const migrationJSON of kit.migrations) {
+      let migration = await Instant.Migrator.createFromTemplate(migrationJSON);
+      Instant.Migrator.Dangerous.filesystem.write(migration);
+    }
+    for (const filename in kit.models) {
+      let model = kit.models[filename];
+      Instant.Generator.write(filename, model);
+    }
+    for (const filename in kit.files) {
+      console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" for framework "${kit.framework}" ...`);
+      fileWriter.writeFile(filename, kit.files[filename]);
+    }
+
+    // Run any new migrations
+    if (kit.migrations.length) {
+      await Instant.Migrator.Dangerous.migrate();
+    }
+
+    Instant.Migrator.disableDangerous();
+    Instant.disconnect();
 
     console.log();
     console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully for framework "${colors.bold.green(kit.framework)}"!`);
