@@ -2,7 +2,7 @@ const Instant = require('@instant.dev/orm')();
 
 /**
  * List all ModelNames
- * Can be queried with e.g. {username__in: ['...']} and other parameters
+ * Can be queried with e.g. {name__in: ['...']} and other parameters
  */
 module.exports = async (context) => {
 

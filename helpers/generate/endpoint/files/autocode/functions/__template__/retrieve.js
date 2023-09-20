@@ -1,7 +1,7 @@
 const Instant = require('@instant.dev/orm')();
 
 /**
- * Destroy an existing ModelName
+ * Retrieve an existing ModelName
  * @param {integer} id The id of the model to update
  */
 module.exports = async (id, context) => {
@@ -10,7 +10,8 @@ module.exports = async (id, context) => {
   const ModelName = Instant.Model('ModelName');
 
   let modelName = await ModelName.find(id);
-  await modelName.destroy();
+  modelName.read(context.params);
+  await modelName.save();
   return modelName;
 
 };
