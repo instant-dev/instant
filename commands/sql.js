@@ -44,8 +44,24 @@ class NewCommand extends Command {
     console.log(`Connecting to SQL interface for _instant/db.json["${env}"]["${db}"] ...`);
     console.log();
 
-    childProcess.spawnSync(
-      (
+    let psqlCommand;
+
+    if (cfg.tunnel) {
+      Instant.enableLogs(2);
+      let tunnelResult = await Instant.tunnel(cfg);
+      console.log();
+      let config = tunnelResult.config;
+      psqlCommand = (
+        cfg.connectionString
+          ? `psql ${config.connectionString}`
+          : (
+              config.password
+                ? `PGPASSWORD=${config.password} `
+                : ``
+            ) + `psql -U ${config.user} -h ${config.host} -p ${config.port} -d ${config.database}`
+      );
+    } else {
+      psqlCommand = (
         cfg.connectionString
           ? `psql ${cfg.connectionString}`
           : (
@@ -53,14 +69,15 @@ class NewCommand extends Command {
                 ? `PGPASSWORD=${cfg.password} `
                 : ``
             ) + `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
-      ),
-      {
-        stdio: 'inherit',
-        shell: true
-      }
-    );
+      );
+    }
 
-    return cfg;
+    childProcess.spawn(psqlCommand, {stdio: 'inherit', shell: true});
+    while (true) {
+      await new Promise(r => setTimeout(() => r(), 1000));
+    }
+
+    return void 0;
 
   }
 

@@ -26,7 +26,7 @@ class DbAddCommand extends Command {
 
     const Instant = loadInstant(true);
     const environment = process.env.NODE_ENV || 'development';
-    
+
     if (environment !== 'development') {
       throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
     }
@@ -125,6 +125,55 @@ class DbAddCommand extends Command {
     }
 
     console.log();
+
+    let requiresTunnel = await inquirer.prompt([
+      {
+        name: 'tunnel',
+        type: 'list',
+        message: `Does this database require an SSH tunnel?\nNote: If you\'re not sure, the answer is probably no.`,
+        choices: [
+          {
+            name: `No ${colors.dim(`(e.g. Vercel, Supabase, Neon)`)}`,
+            value: false
+          },
+          {
+            name: `Yes ${colors.dim(`(e.g. AWS)`)}`,
+            value: true
+          }
+        ],
+        loop: false
+      }
+    ]);
+
+    if (requiresTunnel.tunnel) {
+      let tunnel = await inquirer.prompt([
+        {
+          name: 'user',
+          type: 'input',
+          message: 'ssh user',
+          default: 'ec2-user'
+        },
+        {
+          name: 'host',
+          type: 'input',
+          message: 'ssh host',
+          default: ''
+        },
+        {
+          name: 'port',
+          type: 'input',
+          message: 'ssh port',
+          default: '22'
+        },
+        {
+          name: 'private_key',
+          type: 'input',
+          message: 'private key file',
+          default: 'database.pem'
+        }
+      ]);
+      envCfg.tunnel = tunnel;
+    }
 
     try {
       await Instant.connect(envCfg, null);
