@@ -31,7 +31,7 @@ class InitCommand extends Command {
       throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
     }
 
-    let Instant = loadInstant();
+    let Instant = await loadInstant();
     if (!Instant) {
       console.log();
       console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
@@ -40,7 +40,7 @@ class InitCommand extends Command {
       } else {
         childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
       }
-      Instant = loadInstant(true);
+      Instant = await loadInstant(true, false);
     }
 
     Instant.enableLogs(2);

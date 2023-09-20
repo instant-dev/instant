@@ -20,7 +20,7 @@ class DbBootstrapCommand extends Command {
 
   async run (params) {
 
-    const Instant = loadInstant(true);
+    const Instant = await loadInstant(true);
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(

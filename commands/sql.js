@@ -25,7 +25,7 @@ class NewCommand extends Command {
 
   async run (params) {
 
-    const Instant = loadInstant(true);
+    const Instant = await loadInstant(true);
     const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
