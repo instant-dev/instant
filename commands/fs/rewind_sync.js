@@ -38,6 +38,16 @@ class FsRewindSyncCommand extends Command {
     console.log();
     Instant.enableLogs(2);
     await Instant.connect();
+
+    let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
+    if (!hasMigrationsEnabled) {
+      throw new Error(
+        `Your local database does not have migrations enabled.\n` +
+        `This is usually caused by cloning a project you haven't set up a database for yet.\n` +
+        `Run \`instant db:prepare\` to set up your database or \`instant db:bootstrap\` to bootstrap your database.`
+      );
+    }
+
     Instant.Migrator.enableDangerous();
     await Instant.Migrator.Dangerous.filesystem.rewindSync();
     Instant.Migrator.disableDangerous();

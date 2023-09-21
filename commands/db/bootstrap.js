@@ -30,9 +30,27 @@ class DbBootstrapCommand extends Command {
       );
     }
 
+    let cfg = Instant.Config.read('development', 'main');
+
     console.log();
     Instant.enableLogs(2);
-    await Instant.connect(null, null);
+    try {
+      await Instant.connect(cfg, null);
+    } catch (e) {
+      if (e.message.endsWith(`Database "${cfg.database}" does not exist.`)) {
+        console.log(colors.bold.yellow(`Warning:`) + ` Database "${cfg.database}" does not exist... creating...`);
+        let database = cfg.database;
+        delete cfg.database;
+        Instant.disconnect();
+        await Instant.connect(cfg, null);
+        await Instant.database().create(database);
+        Instant.disconnect();
+        cfg.database = database;
+        await Instant.connect(cfg, null);
+      } else {
+        throw e;
+      }
+    }
     Instant.Migrator.enableDangerous();
     await Instant.Migrator.Dangerous.bootstrap();
     Instant.Migrator.disableDangerous();

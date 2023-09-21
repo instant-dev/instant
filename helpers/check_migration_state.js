@@ -2,6 +2,15 @@ const colors = require('colors/safe');
 
 module.exports = async (Instant, checkEnv = 'development', localEnv = 'development') => {
 
+  let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
+  if (!hasMigrationsEnabled) {
+    throw new Error(
+      `Your local database does not have migrations enabled.\n` +
+      `This is usually caused by cloning a project you haven't set up a database for yet.\n` +
+      `Run \`instant db:prepare\` to set up your database or \`instant db:bootstrap\` to bootstrap your database.`
+    );
+  }
+
   let state = await Instant.Migrator.Dangerous.getMigrationState();
   let diffs = await Instant.Migrator.Dangerous.getTextDiffs();
 

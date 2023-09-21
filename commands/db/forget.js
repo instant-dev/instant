@@ -11,7 +11,7 @@ class DbForgetCommand extends Command {
 
   help () {
     return {
-      description: 'Drops migrations table, disabling migrations but leaving database intact',
+      description: 'Drops local migrations table, disabling migrations but leaving database intact',
       args: [],
       flags: {},
       vflags: {}

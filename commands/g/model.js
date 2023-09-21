@@ -40,6 +40,16 @@ class GenerateModelCommand extends Command {
     Instant.enableLogs(2);
     // Do not load a schema
     await Instant.connect(null, null);
+
+    let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
+    if (!hasMigrationsEnabled) {
+      throw new Error(
+        `Your local database does not have migrations enabled.\n` +
+        `This is usually caused by cloning a project you haven't set up a database for yet.\n` +
+        `Run \`instant db:prepare\` to set up your database or \`instant db:bootstrap\` to bootstrap your database.`
+      );
+    }
+
     Instant.Migrator.enableDangerous();
     // Run each filesystem migration to emulate schema state
     const tmpMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
