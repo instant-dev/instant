@@ -18,7 +18,8 @@ class SqlCommand extends Command {
       flags: {},
       vflags: {
         env: `Environment to connect to (default: ${environment})`,
-        db: 'Database alias to connect to (default: main)'
+        db: 'Database alias to connect to (default: main)',
+        'no-db': 'Connects to psql without a database'
       }
     };
   }
@@ -45,6 +46,7 @@ class SqlCommand extends Command {
     console.log();
 
     let psqlCommand;
+    let useDb = !params.vflags['no-db'];
 
     if (cfg.tunnel) {
       Instant.enableLogs(2);
@@ -58,7 +60,11 @@ class SqlCommand extends Command {
               config.password
                 ? `PGPASSWORD=${config.password} `
                 : ``
-            ) + `psql -U ${config.user} -h ${config.host} -p ${config.port} -d ${config.database}`
+            ) + (
+              useDb
+                ? `psql -U ${config.user} -h ${config.host} -p ${config.port} -d ${config.database}`
+                : `psql -U ${config.user} -h ${config.host} -p ${config.port}`
+            )
       );
     } else {
       psqlCommand = (
@@ -68,7 +74,11 @@ class SqlCommand extends Command {
               cfg.password
                 ? `PGPASSWORD=${cfg.password} `
                 : ``
-            ) + `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
+            ) + (
+              useDb
+                ? `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
+                : `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port}`
+            )
       );
     }
 

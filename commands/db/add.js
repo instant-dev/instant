@@ -207,8 +207,6 @@ class DbAddCommand extends Command {
           default: 'database.pem'
         }
       ]);
-      envCfg.in_vpc = tunnel.in_vpc;
-      delete tunnel.in_vpc;
       envCfg.tunnel = tunnel;
       console.log();
     }
