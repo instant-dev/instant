@@ -4,7 +4,7 @@ const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
 
-class NewCommand extends Command {
+class SqlCommand extends Command {
 
   constructor() {
     super('sql');
@@ -83,4 +83,4 @@ class NewCommand extends Command {
 
 }
 
-module.exports = NewCommand;
+module.exports = SqlCommand;

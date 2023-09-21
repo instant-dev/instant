@@ -46,6 +46,8 @@ class DbMigrateCommand extends Command {
     Instant.Migrator.disableDangerous();
     console.log();
 
+    return void 0;
+
   }
 
 }

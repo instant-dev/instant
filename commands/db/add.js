@@ -43,6 +43,11 @@ class DbAddCommand extends Command {
         `Can not change "development" database.\n` +
         `Try running \`instant init\` instead.`
       );
+    } else if (env === 'local') {
+      throw new Error(
+        `Local databases use the "development" environment.\n`,
+        `If you'd like to chang the "development" database, try running \`instant init\` instead.`
+      )
     }
 
     Instant.enableLogs(2);
