@@ -45,7 +45,9 @@ class InitCommand extends Command {
       } else {
         childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
       }
-      Instant = await loadInstant(true, false);
+      if (!Instant) {
+        Instant = await loadInstant(true, false);
+      }
     }
 
     Instant.enableLogs(2);
@@ -69,8 +71,23 @@ class InitCommand extends Command {
     console.log(`Welcome to ${colors.bold('instant.dev')} 🧙!`);
     console.log();
 
+    let ormPackage;
+    try {
+      ormPackage = JSON.parse(
+        fs.readFileSync(
+          path.join(process.cwd(), 'node_modules', '@instant.dev/orm', 'package.json')
+        ).toString()
+      );
+    } catch (e) {
+      throw new Error(`Could not load @instant.dev/orm package`);
+    }
+    let ormName = ormPackage.name || '@instant.dev/orm';
+    let ormVersion = ormPackage.version || 'latest';
+
     const pkgExists = fs.existsSync('package.json');
-    const pkgString = pkgExists ? fs.readFileSync('package.json').toString() : '{}';
+    const pkgString = pkgExists
+      ? fs.readFileSync('package.json').toString()
+      : JSON.stringify({dependencies: {[ormName]: `^${ormVersion}`}});
     let pkg;
     try {
       pkg = JSON.parse(pkgString);
@@ -78,6 +95,7 @@ class InitCommand extends Command {
       console.error(e);
       throw new Error(`Invalid JSON in "package.json"`);
     }
+    fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
     let framework = fileWriter.determineFramework();
 
     if (!pkg.name) {
