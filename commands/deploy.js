@@ -67,6 +67,9 @@ class DeployCommand extends Command {
       )
     }
 
+    /**
+     * Framework-specific deploy environment restrictions
+     */
     if (framework === 'vercel') {
       if (env !== 'preview' && env !== 'production') {
         throw new Error(`Only valid environments for framework "vercel" are: preview, production`);
@@ -135,6 +138,9 @@ class DeployCommand extends Command {
     console.log();
     console.log(colors.bold(`Deploying:`) + ` Running "${colors.bold.green(framework)}" deploy script for "${colors.bold.green(env)}"...`);
 
+    /**
+     * Framework-specific deploy commands
+     */
     if (framework === 'vercel') {
       console.log();
       if (env === 'production') {
