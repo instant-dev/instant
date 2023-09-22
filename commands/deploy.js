@@ -1,5 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
+
+const fs = require('fs');
 const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
@@ -138,6 +140,13 @@ class DeployCommand extends Command {
     console.log();
     console.log(colors.bold(`Deploying:`) + ` Running "${colors.bold.green(framework)}" deploy script for "${colors.bold.green(env)}"...`);
 
+    // Only deploy environment-specific database info
+    const dbPathname = Instant.Config.pathname();
+    const dbFile = fs.readFileSync(Instant.Config.pathname());
+    const dbObj = Instant.Config.load();
+    Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
+    fs.writeFileSync(dbPathname, JSON.stringify(dbObj, null, 2));
+
     /**
      * Framework-specific deploy commands
      */
@@ -155,6 +164,9 @@ class DeployCommand extends Command {
         childProcess.spawnSync(`lib up ${env}`, {stdio: 'inherit', shell: true});
       }
     }
+
+    // Restore original database file
+    fs.writeFileSync(dbPathname, dbFile);
 
     return void 0;
 
