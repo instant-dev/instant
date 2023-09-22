@@ -6,23 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const stripColors = str => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-
-const drawBox = (...text) => {
-  let lines = text.join('\n').split('\n')
-    .map(line => stripColors(line).length % 2 === 0 ? line : line + ' ');
-  let maxLength = Math.max.apply(Math, lines.map(line => stripColors(line).length));
-  let minPad = 2;
-  let length = maxLength + minPad * 2;
-  return [].concat(
-    `╔` + `═`.repeat(length) + `╗`,
-    lines.map(line => {
-      let count = (length - stripColors(line).length) / 2;
-      return `║` + ` `.repeat(count) + line + ` `.repeat(count) + `║`;
-    }),
-    `╚` + `═`.repeat(length) + `╝`,
-  ).join('\n');
-};
+const drawBox = require('./draw_box.js');
 
 module.exports = async (validate = false, checkVersion = false) => {
 
@@ -87,7 +71,8 @@ module.exports = async (validate = false, checkVersion = false) => {
   if (updatePackages.length) {
     console.log();
     console.log(
-      drawBox(
+      drawBox.center(
+        `yellow`,
         ``,
         `Updates are available for ${colors.bold('instant.dev')}:`,
         ``,

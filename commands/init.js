@@ -9,6 +9,7 @@ const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
 const fileWriter = require('../helpers/file_writer.js');
+const drawBox = require('../helpers/draw_box.js');
 
 class InitCommand extends Command {
 
@@ -257,27 +258,34 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized with framework "${colors.bold.green(framework)}"!`);
-    console.log(`Here are some helpful commands to get started:`);
-    console.log();
-    console.log(`(1) Create a new model by generating a model file and migration:`);
-    console.log(colors.grey.bold(`\t$ instant g:model\n`));
-    console.log(`(2) Create a set of endpoints for a model (create, read, update, destroy, list):`);
-    console.log(colors.grey.bold(`\t$ instant g:endpoint --for [model]\n`));
-    console.log(`(3) Create a relationship between models (one-to-one or one-to-many):`);
-    console.log(colors.grey.bold(`\t$ instant g:relationship\n`));
-    console.log(`(4) Create a custom migration:`);
-    console.log(colors.grey.bold(`\t$ instant g:migration\n`));
-    console.log(`(5) Run your dev server (runs framework-specific command):`);
-    console.log(colors.grey.bold(`\t$ instant serve`));
-    console.log();
-    console.log(`For more information about ${colors.bold(`instant.dev`)}:`);
-    console.log(` Home    => ${colors.bold.underline.blue('https://instant.dev')}`);
-    console.log(` GitHub  => ${colors.bold.underline.blue('https://github.com/instant-dev')}`);
-    console.log(` Discord => ${colors.bold.underline.blue('https://discord.gg/puVYgA7ZMh')}`);
-    console.log(` X       => ${colors.bold.underline.blue('https://x.com/instantdevs')}`);
-    console.log();
-    console.log(colors.green.bold(`Happy building! :)`));
+    console.log(
+      drawBox.left(
+        `green`,
+        ``,
+        colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized with framework "${colors.bold.green(framework)}"!`,
+        `Here are some helpful commands to get started:`,
+        ``,
+        `(1) Create a new model by generating a model file and migration:`,
+        colors.grey.bold(`     $ instant g:model\n`),
+        `(2) Create a set of endpoints for a model (create, read, update, destroy, list):`,
+        colors.grey.bold(`     $ instant g:endpoint --for [model]\n`),
+        `(3) Create a relationship between models (one-to-one or one-to-many):`,
+        colors.grey.bold(`     $ instant g:relationship\n`),
+        `(4) Create a custom migration:`,
+        colors.grey.bold(`     $ instant g:migration\n`),
+        `(5) Run your dev server (runs framework-specific command):`,
+        colors.grey.bold(`     $ instant serve`),
+        ``,
+        `For more information about ${colors.bold(`instant.dev`)}:`,
+        `     Home    => ${colors.bold.underline.blue('https://instant.dev')}`,
+        `     GitHub  => ${colors.bold.underline.blue('https://github.com/instant-dev')}`,
+        `     Discord => ${colors.bold.underline.blue('https://discord.gg/puVYgA7ZMh')}`,
+        `     X       => ${colors.bold.underline.blue('https://x.com/instantdevs')}`,
+        ``,
+        colors.green.bold(`Happy building! :)`),
+        ``
+      )
+    );
     console.log();
 
     return void 0;
