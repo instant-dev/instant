@@ -59,11 +59,11 @@ class InitCommand extends Command {
         `Instant.dev has already been initialized in "${Instant.filesystemRoot()}".\n` +
         `Are you sure you meant to do this? Here are some other options:\n\n` +
         `(1) Create database if it does not exist, reset migrations, but preserve database data:\n` +
-        colors.grey.bold(`\t$ instant db:prepare\n\n`) +
+        colors.grey.bold(`     $ instant db:prepare\n\n`) +
         `(2) Create database if it does not exist, empty database, run migrations, and seed data:\n` +
-        colors.grey.bold(`\t$ instant db:bootstrap\n\n`) +
+        colors.grey.bold(`     $ instant db:bootstrap\n\n`) +
         `(3) Force a new initialization (reset migrations, but preserve database data):\n` +
-        colors.grey.bold(`\t$ instant init --force`)
+        colors.grey.bold(`     $ instant init --force`)
       );
     }
 
