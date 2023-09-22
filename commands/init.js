@@ -258,17 +258,17 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully!`);
+    console.log(colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized!`);
     console.log();
     console.log(`You can create a new migration with:`);
     console.log();
     console.log(
       colors.grey.bold(
-        `\t$ instant new migration`
+        `\t$ instant g:migration`
       )
     );
     console.log();
-    console.log(`Please visit [URL] for more information about using Instant.dev.`);
+    console.log(`Please visit [URL] for more information about using ${colors.bold(`instant.dev`)}`);
     console.log(colors.green.bold(`Happy building! :)`));
     console.log();
 
