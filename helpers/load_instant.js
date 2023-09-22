@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const colors = require('colors/safe');
+const semver = require('semver');
 
 const stripColors = str => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 
@@ -42,7 +43,7 @@ module.exports = async (validate = false, checkVersion = false) => {
       version: pkgs.orm ? pkgs.orm.version : null
     }
   ];
-  const checkPackages = packages.filter(name => !!name);
+  const checkPackages = packages.filter(pkg => !!pkg.name);
   const verifiedPackages = await Promise.all(
     checkPackages.map(pkg => {
       return (async () => {
@@ -64,7 +65,7 @@ module.exports = async (validate = false, checkVersion = false) => {
       })();
     })
   );
-  const updatePackages = verifiedPackages.filter(pkg => pkg.latest !== pkg.version);
+  const updatePackages = verifiedPackages.filter(pkg => semver.gt(pkg.latest, pkg.version));
   if (updatePackages.length) {
     console.log();
     console.log(

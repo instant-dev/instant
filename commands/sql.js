@@ -37,51 +37,29 @@ class SqlCommand extends Command {
       );
     }
 
-    let env = params.vflags.env || environment;
-    let db = params.vflags.db || 'main';
+    const env = (params.vflags.env || [])[0] || environment;
+    const db = params.vflags.db || 'main';
     let cfg = Instant.Config.read(env, db);
 
     console.log();
-    console.log(`Connecting to SQL interface for _instant/db.json["${env}"]["${db}"] ...`);
+    console.log(`Connecting to SQL environment "${colors.bold.green(env)}" using credentials _instant/db.json["${env}"]["${db}"] ...`);
     console.log();
 
     let psqlCommand;
     let useDb = !params.vflags['no-db'];
 
+    const Adapter = Instant.constructor.Core.DB.Database.getDefaultAdapter();
+    const parseConfig = Adapter.prototype.parseConfig.bind(Adapter.prototype);
+
     if (cfg.tunnel) {
       Instant.enableLogs(2);
       let tunnelResult = await Instant.tunnel(cfg);
       console.log();
-      let config = tunnelResult.config;
-      psqlCommand = (
-        cfg.connectionString
-          ? `psql ${config.connectionString}`
-          : (
-              config.password
-                ? `PGPASSWORD=${config.password} `
-                : ``
-            ) + (
-              useDb
-                ? `psql -U ${config.user} -h ${config.host} -p ${config.port} -d ${config.database}`
-                : `psql -U ${config.user} -h ${config.host} -p ${config.port}`
-            )
-      );
+      cfg = parseConfig(tunnelResult.config);
     } else {
-      psqlCommand = (
-        cfg.connectionString
-          ? `psql ${cfg.connectionString}`
-          : (
-              cfg.password
-                ? `PGPASSWORD=${cfg.password} `
-                : ``
-            ) + (
-              useDb
-                ? `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port} -d ${cfg.database}`
-                : `psql -U ${cfg.user} -h ${cfg.host} -p ${cfg.port}`
-            )
-      );
+      cfg = parseConfig(cfg);
     }
-
+    psqlCommand = `psql postgres://${cfg.user}:${cfg.password}@${cfg.host}:${cfg.port}/${cfg.database || ''}${cfg.ssl ? '?sslmode=true' : ''}`;
     childProcess.spawn(psqlCommand, {stdio: 'inherit', shell: true});
     while (true) {
       await new Promise(r => setTimeout(() => r(), 1000));

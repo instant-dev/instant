@@ -15,9 +15,11 @@ class DeployCommand extends Command {
   help () {
     return {
       description: 'Deploys a project using your framework of choice',
-      args: ['env'],
+      args: [],
       flags: {},
-      vflags: {}
+      vflags: {
+        env: `Environment to deploy to`,
+      }
     };
   }
 
@@ -48,11 +50,11 @@ class DeployCommand extends Command {
       );
     }
 
-    let env = (params.args[0] || '').trim();
+    const env = ((params.vflags.env || [])[0] || '').trim();
 
     if (!env) {
       throw new Error(
-        `Must specify environment.\n` +
+        `Must specify environment with --env [environment].\n` +
         this.printRecommendedEnvironments(framework)
       );
     } else if (env === 'development') {
