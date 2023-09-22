@@ -174,7 +174,6 @@ class KitCommand extends Command {
       Instant.Generator.write(filename, model);
     }
     for (const filename in kit.files) {
-      console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" for framework "${kit.framework}" ...`);
       fileWriter.writeFile(filename, kit.files[filename]);
     }
 

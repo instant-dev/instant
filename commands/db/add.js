@@ -3,6 +3,7 @@ const colors = require('colors/safe');
 const inquirer = require('inquirer');
 
 const loadInstant = require('../../helpers/load_instant.js');
+const fileWriter = require('../../helpers/file_writer.js');
 
 class DbAddCommand extends Command {
 
@@ -259,6 +260,18 @@ class DbAddCommand extends Command {
     }
 
     Instant.Config.write(env, db, envCfg);
+
+    // ignore the private key file if it was added
+    if (envCfg?.tunnel?.private_key) {
+      fileWriter.writeLine('.gitignore', envCfg.tunnel.private_key);
+    }
+
+    // Write framework-specific directives
+    const framework = fileWrite.determineFramework();
+    if (framework === 'autocode') {
+      fileWriter.writeJSON('env.json', env, {}, true);
+      fileWriter.writeLine('.gitignore', 'env.json');
+    }
 
     console.log();
     console.log(colors.bold.green(`Success: `) + `_instant/db.json["${env}"]["${db}"] added successfully!`);

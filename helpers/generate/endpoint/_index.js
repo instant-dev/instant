@@ -52,11 +52,7 @@ module.exports = async (Instant, params) => {
       ].forEach(key => fileString = fileString.replaceAll(key, names[key]));
       fileData = Buffer.from(fileString);
     }
-    console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${newFilename}" ...`);
     let result = fileWriter.writeFile(newFilename, fileData, false);
-    if (!result) {
-      console.log(colors.bold.black(`FrameworkFileWriter:`) +  colors.yellow(` Warn: Skipped "${newFilename}" (already exists)`));
-    }
   }
 
   console.log();

@@ -1,11 +1,13 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
+const commandExists = require('command-exists');
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
+const fileWriter = require('../helpers/file_writer.js');
 
 class InitCommand extends Command {
 
@@ -60,9 +62,81 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(`Welcome to ${colors.green.bold('Instant.dev')}!`);
+    console.log(`Welcome to ${colors.bold('instant.dev')} 🧙!`);
     console.log();
-    console.log(`To get started, we need to connect to your local Postgres instance.`);
+
+    const pkgExists = fs.existsSync('package.json');
+    const pkgString = pkgExists ? fs.readFileSync('package.json').toString() : '{}';
+    let pkg;
+    try {
+      pkg = JSON.parse(pkgString);
+    } catch (e) {
+      console.error(e);
+      throw new Error(`Invalid JSON in "package.json"`);
+    }
+    let framework = fileWriter.determineFramework();
+
+    if (!pkg.name) {
+      console.log(`✨ It looks like you're starting from scratch.`);
+      console.log();
+      console.log(`Which framework and host would you like to start with?`);
+      console.log();
+      const frameworkExists = {
+        'autocode': await commandExists('lib'),
+        'vercel': await commandExists('vercel')
+      };
+      let result = await inquirer.prompt([
+        {
+          name: 'framework',
+          type: 'list',
+          message: `Select a framework / host`,
+          choices: [
+            {
+              name: `Autocode${colors.dim(frameworkExists['autocode'] ? `` : ` (will install)`)}`,
+              value: `autocode`
+            },
+            {
+              name: `Vercel${colors.dim(frameworkExists['vercel'] ? `` : ` (will install)`)}`,
+              value: `vercel`
+            }
+          ],
+          loop: false
+        }
+      ]);
+      framework = result.framework;
+      console.log();
+      console.log(`Great! We'll start a new ${colors.bold('instant.dev')} project with "${colors.bold.green(chosenFramework)}".`);
+      console.log();
+      if (framework === 'autocode') {
+        if (!frameworkExists['autocode']) {
+          childProcess.execSync(`npm i -g lib.cli@latest`, {stdio: 'inherit'});
+        }
+        throw new Error(`Autocode WIP`);
+      } else if (framework === 'vercel') {
+        if (!frameworkExists['vercel']) {
+          childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
+        }
+      } else {
+        throw new Error(`Framework "${framework}" not yet supported`);
+      }
+      framework = fileWriter.determineFramework();
+    } else {
+      console.log(`👀 It looks like you're adding ${colors.bold('instant.dev')} to an existing${framework !== 'default' ? ` "${colors.bold.green(framework)}"` : ``} project.`);
+      console.log();
+      let result = await inquirer.prompt([
+        {
+          name: 'verify',
+          type: 'confirm',
+          message: `Continue adding instant.dev to your${framework !== 'default' ? ` "${colors.bold.green(framework)}"` : ``} project?`,
+        }
+      ]);
+      if (!result.verify) {
+        throw new Error(`Initialization aborted`);
+      }
+    }
+
+    console.log();
+    console.log(`Next, we need to connect to your local Postgres instance.`);
     console.log(`If you haven't set one up yet, please visit [URL].`);
     console.log();
 
@@ -144,6 +218,12 @@ class InitCommand extends Command {
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
+
+    // Write framework-specific directives
+    if (framework === 'autocode') {
+      fileWriter.writeJSON('env.json', 'local', {}, true);
+      fileWriter.writeLine('.gitignore', 'env.json');
+    }
 
     console.log();
     console.log(colors.bold.green(`Success: `) + `Instant.dev initialized successfully!`);
