@@ -171,9 +171,6 @@ class InitCommand extends Command {
 
     console.log();
     console.log(`Next, we need to connect to your local Postgres instance.`);
-    console.log(`If you haven't set one up yet, please visit [URL].`);
-    console.log();
-
     console.log('Please enter your local Postgres credentials:');
 
     let results = await inquirer.prompt([
@@ -260,17 +257,26 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized!`);
+    console.log(colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized with framework "${colors.bold.green(framework)}"!`);
+    console.log(`Here are some helpful commands to get started:`);
     console.log();
-    console.log(`You can create a new migration with:`);
+    console.log(`(1) Create a new model by generating a model file and migration:`);
+    console.log(colors.grey.bold(`\t$ instant g:model\n`));
+    console.log(`(2) Create a set of endpoints for a model (create, read, update, destroy, list):`);
+    console.log(colors.grey.bold(`\t$ instant g:endpoint --for [model]\n`));
+    console.log(`(3) Create a relationship between models (one-to-one or one-to-many):`);
+    console.log(colors.grey.bold(`\t$ instant g:relationship\n`));
+    console.log(`(4) Create a custom migration:`);
+    console.log(colors.grey.bold(`\t$ instant g:migration\n`));
+    console.log(`(5) Run your dev server (runs framework-specific command):`);
+    console.log(colors.grey.bold(`\t$ instant serve`));
     console.log();
-    console.log(
-      colors.grey.bold(
-        `\t$ instant g:migration`
-      )
-    );
+    console.log(`For more information about ${colors.bold(`instant.dev`)}:`);
+    console.log(` Home    => ${colors.bold.underline.blue('https://instant.dev')}`);
+    console.log(` GitHub  => ${colors.bold.underline.blue('https://github.com/instant-dev')}`);
+    console.log(` Discord => ${colors.bold.underline.blue('https://discord.gg/puVYgA7ZMh')}`);
+    console.log(` X       => ${colors.bold.underline.blue('https://x.com/instantdevs')}`);
     console.log();
-    console.log(`Please visit [URL] for more information about using ${colors.bold(`instant.dev`)}`);
     console.log(colors.green.bold(`Happy building! :)`));
     console.log();
 
