@@ -11,7 +11,7 @@ class DbPrepareCommand extends Command {
 
   help () {
     return {
-      description: 'Prepares database for new migrations by clearing all existing migrations',
+      description: 'Prepares database: clears all existing migrations but preserves data',
       args: [],
       flags: {},
       vflags: {}

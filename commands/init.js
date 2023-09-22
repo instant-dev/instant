@@ -2,6 +2,7 @@ const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
 const commandExists = require('command-exists');
+
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
@@ -51,13 +52,14 @@ class InitCommand extends Command {
 
     if (!force && Instant.isFilesystemInitialized()) {
       throw new Error(
-        `Instant.dev has already been initialized in "${Instant.filesystemRoot()}".\n\n` +
-        `You can force a new initialization with:\n\n` +
-        colors.grey.bold(`\t$ instant init --force\n\n`) +
-        `which will reset your migrations but preserve your database.\n\n` +
-        `If you simply want to reset your data, run:\n\n` +
+        `Instant.dev has already been initialized in "${Instant.filesystemRoot()}".\n` +
+        `Are you sure you meant to do this? Here are some other options:\n\n` +
+        `(1) Create database if it does not exist, reset migrations, but preserve database data:\n` +
+        colors.grey.bold(`\t$ instant db:prepare\n\n`) +
+        `(2) Create database if it does not exist, empty database, run migrations, and seed data:\n` +
         colors.grey.bold(`\t$ instant db:bootstrap\n\n`) +
-        `which will empty your database, re-run all migrations, and seed your data.`
+        `(3) Force a new initialization (reset migrations, but preserve database data):\n` +
+        colors.grey.bold(`\t$ instant init --force`)
       );
     }
 

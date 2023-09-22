@@ -1,8 +1,10 @@
+const colors = require('colors/safe');
+const semver = require('semver');
+const commandExists = require('command-exists');
+
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const colors = require('colors/safe');
-const semver = require('semver');
 
 const stripColors = str => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 
@@ -23,6 +25,22 @@ const drawBox = (...text) => {
 };
 
 module.exports = async (validate = false, checkVersion = false) => {
+
+  const isPostgresInstalled = await commandExists('psql');
+
+  if (!isPostgresInstalled) {
+    console.log();
+    console.log(colors.bold.red(`Missing PostgreSQL installation`));
+    console.log();
+    console.log(`In order to use ${colors.bold('instant.dev')}, you must have PostgreSQL installed locally.`);
+    console.log();
+    console.log(`If you are using macOS, the easiest way to get started is ${colors.bold('Postgres.app')}:`);
+    console.log(` => ${colors.bold.underline.blue('https://postgresapp.com')}`);
+    console.log();
+    console.log(`Otherwise, you can install PostgreSQL using one of the recommended installers:`);
+    console.log(` => ${colors.bold.underline.blue('https://www.postgresql.org/download')}`);
+    throw new Error(`Missing PostgreSQL installation`);
+  }
 
   const pkgs = {self: require('../package.json')};
   try {
