@@ -77,9 +77,10 @@ class DeployCommand extends Command {
       throw new Error(`Framework "${framework}" not yet supported for deploy`);
     }
 
+    const cfg = Instant.Config.read(env, 'main');
+
     console.log();
     console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(framework)}" to environment "${colors.bold.green(env)}"...`);
-    const cfg = Instant.Config.read(env, 'main');
     console.log();
 
     Instant.enableLogs(2);

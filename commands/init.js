@@ -79,17 +79,29 @@ class InitCommand extends Command {
     if (!pkg.name) {
       console.log(`✨ It looks like you're starting from scratch.`);
       console.log();
-      console.log(`Which framework and host would you like to start with?`);
-      console.log();
       const frameworkExists = {
         'autocode': await commandExists('lib'),
         'vercel': await commandExists('vercel')
       };
+      let name = process.cwd().split(path.sep).pop();
       let result = await inquirer.prompt([
+        {
+          name: 'name',
+          type: 'input',
+          message: 'Enter a project name',
+          validate: s => {
+            if (s.match(/[^a-z0-9\-]/i)) {
+              return `can only contain alphanumeric or - characters`;
+            } else {
+              return true;
+            }
+          },
+          default: name.replace(/[^a-z0-9\-]+/gi, '-')
+        },
         {
           name: 'framework',
           type: 'list',
-          message: `Select a framework / host`,
+          message: `Select a framework / host to start with`,
           choices: [
             {
               name: `Autocode${colors.dim(frameworkExists['autocode'] ? `` : ` (will install)`)}`,
@@ -104,8 +116,9 @@ class InitCommand extends Command {
         }
       ]);
       framework = result.framework;
+      name = result.name;
       console.log();
-      console.log(`Great! We'll start a new ${colors.bold('instant.dev')} project with "${colors.bold.green(chosenFramework)}".`);
+      console.log(`Great! We'll start a new ${colors.bold('instant.dev')} project with "${colors.bold.green(framework)}".`);
       console.log();
       if (framework === 'autocode') {
         if (!frameworkExists['autocode']) {
@@ -116,6 +129,12 @@ class InitCommand extends Command {
         if (!frameworkExists['vercel']) {
           childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
         }
+        const result = childProcess.spawnSync(`vercel link --yes`, {stdio: 'inherit', shell: true});
+        if (result.signal === 'SIGINT') {
+          process.exit(2)
+        }
+        fileWriter.writeJSON('package.json', 'name', name);
+        return;
       } else {
         throw new Error(`Framework "${framework}" not yet supported`);
       }
