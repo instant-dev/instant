@@ -8,6 +8,7 @@ const path = require('path');
 const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
+const addDatabase = require('../helpers/add_database.js');
 const fileWriter = require('../helpers/file_writer.js');
 const drawBox = require('../helpers/draw_box.js');
 
@@ -170,80 +171,8 @@ class InitCommand extends Command {
       }
     }
 
-    console.log();
-    console.log(`Next, we need to connect to your local Postgres instance.`);
-    console.log('Please enter your local Postgres credentials:');
+    await addDatabase(Instant, 'development', 'main');
 
-    let results = await inquirer.prompt([
-      {
-        name: 'host',
-        type: 'input',
-        message: 'host',
-        default: 'localhost'
-      },
-      {
-        name: 'port',
-        type: 'input',
-        message: 'port',
-        default: '5432'
-      },
-      {
-        name: 'user',
-        type: 'input',
-        message: 'user',
-        default: 'postgres'
-      },
-      {
-        name: 'password',
-        type: 'input',
-        message: 'password',
-        default: ''
-      },
-      {
-        name: 'database',
-        type: 'input',
-        message: 'database',
-        default: 'postgres'
-      }
-    ]);
-    let envCfg = results;
-
-    console.log();
-
-    try {
-      await Instant.connect(envCfg, null);
-    } catch (e) {
-      if (e.message.endsWith(`Database "${envCfg.database}" does not exist.`)) {
-        let database = envCfg.database;
-        console.log();
-        console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
-        console.log(`However, you can create it now if you'd like.`);
-        console.log();
-        let results = await inquirer.prompt([
-          {
-            name: 'create',
-            type: 'confirm',
-            message: `Create database "${database}"?`
-          }
-        ]);
-        if (!results['create']) {
-          throw new Error(`Aborted. Database "${database}" does not exist.`);
-        } else {
-          console.log();
-          delete envCfg.database;
-          Instant.disconnect();
-          await Instant.connect(envCfg, null);
-          await Instant.database().create(database);
-          Instant.disconnect();
-          envCfg.database = database;
-          await Instant.connect(envCfg, null);
-        }
-      } else {
-        throw e;
-      }
-    }
-
-    Instant.Config.write('development', 'main', envCfg);
     Instant.Migrator.enableDangerous();
     Instant.Migrator.Dangerous.reset();
     await Instant.Migrator.Dangerous.prepare();
