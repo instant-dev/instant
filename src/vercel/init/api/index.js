@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
     let connectTime = new Date().valueOf() - t;
     return res.status(200).json({
       message: [
-        `Welcome to instant.dev using Vercel!`,
+        `Welcome to instant.dev on Vercel!`,
         `This is a test endpoint that provides some connection latency data.`,
       ],
       connectTime

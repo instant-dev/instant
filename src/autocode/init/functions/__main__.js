@@ -10,7 +10,7 @@ module.exports = async (context) => {
   let connectTime = new Date().valueOf() - t;
   return {
     message: [
-      `Welcome to instant.dev using Autocode!`,
+      `Welcome to instant.dev on Autocode!`,
       `This is a test endpoint that provides some connection latency data.`,
     ],
     connectTime
