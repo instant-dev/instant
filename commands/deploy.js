@@ -74,7 +74,11 @@ class DeployCommand extends Command {
     } else if (framework === 'autocode') {
       // do nothing
     } else {
-      throw new Error(`Framework "${framework}" not yet supported for deploy`);
+      throw new Error(
+        `Framework "${framework}" deployments not yet supported.\n` +
+        `You should run \`instant db:migrate --env ${env}\`,\n` +
+        `and then use your manual deployment method.`
+      );
     }
 
     const cfg = Instant.Config.read(env, 'main');
