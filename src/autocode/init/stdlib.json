@@ -1,0 +1,5 @@
+{
+  "name": "autocode-project",
+  "timeout": 10000,
+  "memory": 512
+}

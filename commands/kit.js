@@ -34,6 +34,7 @@ class KitCommand extends Command {
       dependencies: {}
     };
     const kitListRoot = path.join(__dirname, '..', 'kits');
+    const srcRoot = path.join(__dirname, '..', 'src');
     const kits = fs.readdirSync(kitListRoot);
     if (!kit.name) {
       throw new Error(`Please provide a valid kit name.\nValid kits are: ${kits.join(', ')}`);
@@ -43,8 +44,7 @@ class KitCommand extends Command {
     const kitRoot = path.join(kitListRoot, kit.name);
     const migrationsRoot = path.join(kitRoot, 'migrations');
     const modelsRoot = path.join(kitRoot, 'models');
-    const filesRoot = path.join(kitRoot, 'files');
-    const frameworkFilesRoot = path.join(kitRoot, 'files', kit.framework);
+    const frameworkFilesRoot = path.join(srcRoot, kit.framework, 'kits', kit.name);
     const depsPath = path.join(kitRoot, 'dependencies.json');
     if (fs.existsSync(migrationsRoot)) {
       try {
@@ -69,20 +69,20 @@ class KitCommand extends Command {
         throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
       }
     }
-    if (fs.existsSync(filesRoot)) {
-      if (fs.existsSync(frameworkFilesRoot)) {
-        kit.files = fileWriter.readRecursive(frameworkFilesRoot);
-      } else {
-        console.log();
-        let proceedResult = await inquirer.prompt([{
-          type: 'confirm',
-          name: 'proceed',
-          message: `This kit is missing default files for your framework "${colors.bold.green(kit.framework)}"\n` +
-            `Would you like to proceed anyway?`
-        }]);
-        if (!proceedResult.proceed) {
-          throw new Error(`kit installation aborted`);
-        }
+    if (fs.existsSync(frameworkFilesRoot)) {
+      kit.files = fileWriter.readRecursive(frameworkFilesRoot);
+    } else {
+      console.log();
+      console.log(colors.bold.yellow('Warning: ') + ` This kit is missing files for your framework "${colors.bold.green(kit.framework)}"`);
+      console.log(`You can still add the models and run migrations, but you'll need to create your own endpoints.`);
+      console.log();
+      let proceedResult = await inquirer.prompt([{
+        type: 'confirm',
+        name: 'proceed',
+        message: `Would you like to proceed anyway?`
+      }]);
+      if (!proceedResult.proceed) {
+        throw new Error(`kit installation aborted`);
       }
     }
     if (fs.existsSync(depsPath)) {

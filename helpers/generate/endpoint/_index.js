@@ -11,7 +11,7 @@ module.exports = async (Instant, params) => {
 
   const framework = fileWriter.determineFramework();
 
-  const pathname = path.join(__dirname, 'files', framework);
+  const pathname = path.join(__dirname, '..', '..', '..', 'src', framework, 'endpoint');
   if (!fs.existsSync(pathname)) {
     throw new Error(`No endpoint template found for framework "${colors.bold.green(framework)}"`);
   }
