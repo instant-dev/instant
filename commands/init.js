@@ -68,7 +68,12 @@ class InitCommand extends Command {
     }
 
     console.log();
-    console.log(`Welcome to ${colors.bold('instant.dev')} 🧙!`);
+    console.log(
+      drawBox.center(
+        `blue`,
+        `Welcome to ${colors.bold('instant.dev')} 🧙!`,
+      )
+    );
     console.log();
 
     let ormPackage;
