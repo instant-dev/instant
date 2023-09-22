@@ -124,27 +124,32 @@ class InitCommand extends Command {
         if (!frameworkExists['autocode']) {
           childProcess.execSync(`npm i -g lib.cli@latest`, {stdio: 'inherit'});
         }
-        fileWriter.writeJSON('package.json', 'name', name);
-        fileWriter.writeJSON('stdlib.json', 'name', name);
-        throw new Error(`Autocode WIP`);
       } else if (framework === 'vercel') {
         if (!frameworkExists['vercel']) {
           childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
         }
-        const result = childProcess.spawnSync(`vercel link --yes`, {stdio: 'inherit', shell: true});
+        const result = childProcess.spawnSync(`vercel link`, {stdio: 'inherit', shell: true});
+        if (!fs.existsSync('.vercel')) {
+          throw new Error(`Framework initialization aborted`);
+        }
+        console.log();
         if (result.signal === 'SIGINT') {
           process.exit(2)
         }
-        const srcRoot = path.join(__dirname, '..', 'src');
-        const frameworkFilesRoot = path.join(srcRoot, framework, 'init');
-        const files = fileWriter.readRecursive(frameworkFilesRoot);
-        for (const filename in files) {
-          fileWriter.writeFile(filename, files[filename], false);
-        }
-        fileWriter.writeJSON('package.json', 'name', name);
       } else {
         throw new Error(`Framework "${framework}" not yet supported`);
       }
+      const srcRoot = path.join(__dirname, '..', 'src');
+      const frameworkFilesRoot = path.join(srcRoot, framework, 'init');
+      if (!fs.existsSync(frameworkFilesRoot)) {
+        throw new Error(`No init template files found for "${framework}"`);
+      }
+      const files = fileWriter.readRecursive(frameworkFilesRoot);
+      for (const filename in files) {
+        fileWriter.writeFile(filename, files[filename], false);
+      }
+      fileWriter.writeJSON('package.json', 'name', name);
+      fileWriter.writeJSON('package.json', 'private', true);
       console.log();
       console.log(`Framework "${colors.bold.green(framework)}" project created successfully!`);
     } else {

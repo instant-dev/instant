@@ -69,7 +69,7 @@ module.exports = {
   },
 
   writeJSON (filename, key, value, keepValueIfExists = false) {
-    console.log(colors.bold.black(`FrameworkFileWriter:`) + ` Writing key "${key}" to JSON file "${filename}"`);
+    console.log(colors.bold.black(`FrameworkFileWriter:`) + ` Writing [${key}=${JSON.stringify(value)}] to JSON file "${filename}"`);
     const exists = fs.existsSync(filename);
     let json = {};
     if (exists) {
