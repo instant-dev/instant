@@ -11,12 +11,13 @@ managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
 
 Use instant.dev to:
 
-- Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations any
-  existing JavaScript project
+- Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations to
+  your existing JavaScript project
 - Scaffold new Postgres-backed API projects from scratch using
   [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
+- Generate new migrations, models and endpoints
 - Migrate remote databases and deploy in a single step
-- Connect to any PostgreSQL hosts: AWS RDS, Railway, Vercel Postgres, Neon,
+- Connect to any PostgreSQL host: AWS RDS, Railway, Vercel Postgres, Neon,
   Supabase
 
 ## Features
