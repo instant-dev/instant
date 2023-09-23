@@ -9,6 +9,10 @@ like ActiveRecord for the Node.js, Deno and Bun ecosystems. We’ve been using i
 since 2016 in production at [Autocode](https://autocode.com) where it has
 managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
 
+You'll notice instant.dev is small. It's written in CommonJS. It doesn't use
+TypeScript. Our development principles are straightforward: instant.dev should
+work with any JavaScript stack and help you ship product faster.
+
 Use instant.dev to:
 
 - Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations to
@@ -147,9 +151,13 @@ let user = await User.create({username: 'Billy'});
 // {id: 1, username: 'Billy', created_at: '...', updated_at: '...'}
 console.log(user.toJSON());
 
-let user2 = await User.create({username: 'Sharon'});
-let user3 = await User.create({username: 'William'});
-let user4 = await User.create({username: 'Jill'});
+// Create multiple models at once
+const UserFactory = Instant.ModelFactory('User');
+let createdUsers = await UserFactory.create([
+  {username: 'Sharon'},
+  {username: 'William'},
+  {username: 'Jill'}
+]);
 
 // Retrieves users with username containing the string 'ill'
 let users = await User.query()
@@ -158,6 +166,12 @@ let users = await User.query()
   .select();
 
 // [{username: 'Billy'}, {username: 'Jill'}, {username: 'William'}]
+console.log(users.toJSON());
+
+users[0].set('username', 'Silly Billy');
+await users[0].save();
+
+// [{username: 'Silly Billy'}, {username: 'Jill'}, {username: 'William'}]
 console.log(users.toJSON());
 ```
 
