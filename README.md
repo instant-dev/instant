@@ -19,7 +19,7 @@ you ship product faster.
 Use instant.dev to:
 
 - Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations to
-  your existing JavaScript project
+  your existing JavaScript or TypeScript project
 - Scaffold new Postgres-backed API projects from scratch using
   [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
 - Generate new migrations, models and endpoints
