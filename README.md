@@ -11,7 +11,9 @@ where it has managed over 1 billion records in a 4TB AWS Aurora Postgres
 instance.
 
 You can add instant.dev to any existing JavaScript project or use it to
-scaffold a new project from scratch. We built it for development teams that;
+scaffold a new project from scratch.
+
+We built it for development teams that;
 
 1. Are using Postgres (AWS RDS, Railway, Vercel Postgres, Neon, Supabase)
    to manage their data and are working with one or more JavaScript backends.
