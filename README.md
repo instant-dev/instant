@@ -10,7 +10,8 @@ We’ve been using it since 2016 in production at [Autocode](https://autocode.co
 where it has managed over 1 billion records in a 4TB AWS Aurora Postgres
 instance.
 
-We built instant.dev for nimble development teams that;
+You can add instant.dev to any existing JavaScript project or use it to
+scaffold a new project from scratch. We built it for development teams that;
 
 1. Are using Postgres (AWS RDS, Railway, Vercel Postgres, Neon, Supabase)
    to manage their data and are working with one or more JavaScript backends.
@@ -20,14 +21,6 @@ We built instant.dev for nimble development teams that;
 
 3. Need table structure, index and foreign key guarantees between multiple local
    dev environments, staging and prod.
-
-And you can [Get Started](#getting-started) with instant.dev to;
-
-1. Add migrations and the [Instant ORM](https://github.com/instant-dev/orm) to
-   an existing JavaScript project.
-
-2. Build a new Postgres-backed API that can be deployed to
-   [Vercel](https://vercel.com) or [Autocode](https://autocode.com).
 
 ## Features
 
@@ -195,10 +188,8 @@ instant.dev consists of two main components:
    an Object-Relational Mapper for easy CRUD operations, query composition and
    transactions.
 
-## Requirements
-
-To use instant.dev you must have Postgres installed locally. If you're running
-macOS, the easiest way to manage a local Postgres installation is with
+**To use instant.dev you must have Postgres installed locally.** If you're
+running macOS, the easiest way to manage a local Postgres installation is with
 [Postgres.app](https://postgresapp.com). You can also view Postgres installation
 options at [postgresql.org/download](https://www.postgresql.org/download).
 
@@ -212,7 +203,6 @@ $ npm i instant.dev -g
 
 Now, visit your main project directory for your Node.js, Deno or Bun project
 and run `instant init`.
-of
 
 ```shell
 $ cd ~/projects/my-awesome-project
