@@ -22,35 +22,33 @@ Use instant.dev to:
 
 ## Features
 
-1. **CRUD operations**: Create, Read, Update and Destroy records easily.
-
-2. **Query composition**: Build complex SELECT and UPDATE queries with many
-   layers of nested joins and conditional statements.
-
-3. **Transactions**: Ensure data consistency within logical transaction blocks
-   that can be rolled back to prevent writing orphaned data.
-
-4. **Input validation**: Synchronously validate object fields to ensure the
-   right data is being stored.
-
-5. **Relationship verification**: Asynchronously validate relationships between
-   one or more fields and external resources before saving.
-
-6. **Calculated fields**: Automatically populate object fields based on existing
-   data.
-
-7. **Lifecycle callbacks**: Execute custom logic beforeSave(), afterSave(),
-   beforeDestroy() and afterDestroy() to perform necessary build and teardown
-   steps inside of transactions.
-
-8. **Migrations**: Manage local database state via the filesystem to make
-   branched git development a breeze.
-
-9. **Seeding**: Provide custom JSON files so that all developers can share the
-   same test data across development, testing and staging environments.
-
-10. **Code generation**: Automatically generate models, migrations and endpoints
-    for your project.
+- **CRUD operations**
+  - Create, Read, Update and Destroy records easily
+- **Query composition**
+  - Build complex SELECT and UPDATE queries with many layers of nested joins and
+    conditional statements
+- **Transactions**
+  - Ensure data consistency within logical transaction blocks that can be rolled
+    back to prevent writing orphaned data
+- **Input validation**
+  - Synchronously validate object fields to ensure the right data is stored
+- **Relationship verification**
+  - Asynchronously validate relationships between one or more fields and
+    external resources before saving
+- **Calculated fields**
+  - Automatically populate object fields based on existing data
+- **Lifecycle callbacks**
+  - Execute custom logic beforeSave(), afterSave(), beforeDestroy() and
+    afterDestroy() to perform necessary build and teardown steps inside of
+    transactions
+- **Migrations**
+  - Manage local database state via the filesystem to make branched git
+    development a breeze
+- **Seeding**
+  - Provide custom JSON files so that all developers can share the same test
+    data across development, testing and staging environments
+- **Code generation**
+  - Automatically generate models, migrations and endpoints for your project
 
 ## Table of Contents
 
