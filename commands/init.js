@@ -36,6 +36,58 @@ class InitCommand extends Command {
       throw new Error(`This command can only be used when process.env.NODE_ENV=development`);
     }
 
+    const force = ('force' in params.vflags);
+    const instantRoot = './_instant';
+
+    if (!force && fs.existsSync(instantRoot)) {
+      throw new Error(
+        `Instant.dev has already been initialized in "${instantRoot}".\n` +
+        `Are you sure you meant to do this? Here are some other options:\n\n` +
+        `(1) Create database if it does not exist, reset migrations, but preserve database data:\n` +
+        colors.grey.bold(`     $ instant db:prepare\n\n`) +
+        `(2) Create database if it does not exist, empty database, run migrations, and seed data:\n` +
+        colors.grey.bold(`     $ instant db:bootstrap\n\n`) +
+        `(3) Force a new initialization (reset migrations, but preserve database data):\n` +
+        colors.grey.bold(`     $ instant init --force`)
+      );
+    }
+
+    console.log();
+    console.log(
+      drawBox.center(
+        `blue`,
+        `Welcome to ${colors.bold('🧙 instant.dev')}!`,
+      )
+    );
+
+    const pkgExists = fs.existsSync('package.json');
+    let framework = fileWriter.determineFramework();
+
+    console.log();
+    console.log(`🪄 You are about to initialize ${colors.bold('instant.dev')} in the current directory:`)
+    console.log(`   📂 ${colors.dim(process.cwd())}`);
+    console.log();
+    if (!pkgExists) {
+      console.log(`✨ We've detected you're starting from scratch`);
+    } else if (framework === 'default') {
+      console.log(`❓ We couldn't auto-detect a framework, but ${colors.bold('instant.dev')} will still work!`);
+      console.log(`   Some generation features (endpoints, kits) may be unavailable`);
+    } else {
+      console.log(`📦 We've detected you're using the supported framework "${colors.bold.green(framework)}"`);
+    }
+    console.log();
+    let verifyResult = await inquirer.prompt([
+      {
+        name: 'verify',
+        type: 'confirm',
+        message: `Continue with initialization?`,
+        default: true
+      }
+    ]);
+    if (!verifyResult.verify) {
+      throw new Error(`Initialization aborted`);
+    }
+
     let Instant = await loadInstant();
     if (!Instant) {
       console.log();
@@ -52,30 +104,6 @@ class InitCommand extends Command {
 
     Instant.enableLogs(2);
 
-    const force = ('force' in params.vflags);
-
-    if (!force && Instant.isFilesystemInitialized()) {
-      throw new Error(
-        `Instant.dev has already been initialized in "${Instant.filesystemRoot()}".\n` +
-        `Are you sure you meant to do this? Here are some other options:\n\n` +
-        `(1) Create database if it does not exist, reset migrations, but preserve database data:\n` +
-        colors.grey.bold(`     $ instant db:prepare\n\n`) +
-        `(2) Create database if it does not exist, empty database, run migrations, and seed data:\n` +
-        colors.grey.bold(`     $ instant db:bootstrap\n\n`) +
-        `(3) Force a new initialization (reset migrations, but preserve database data):\n` +
-        colors.grey.bold(`     $ instant init --force`)
-      );
-    }
-
-    console.log();
-    console.log(
-      drawBox.center(
-        `blue`,
-        `Welcome to ${colors.bold('instant.dev')} 🧙!`,
-      )
-    );
-    console.log();
-
     let ormPackage;
     try {
       ormPackage = JSON.parse(
@@ -89,7 +117,6 @@ class InitCommand extends Command {
     let ormName = ormPackage.name || '@instant.dev/orm';
     let ormVersion = ormPackage.version || 'latest';
 
-    const pkgExists = fs.existsSync('package.json');
     const pkgString = pkgExists
       ? fs.readFileSync('package.json').toString()
       : JSON.stringify({dependencies: {[ormName]: `^${ormVersion}`}});
@@ -100,11 +127,10 @@ class InitCommand extends Command {
       console.error(e);
       throw new Error(`Invalid JSON in "package.json"`);
     }
-    fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-    let framework = fileWriter.determineFramework();
 
     if (!pkg.name) {
-      console.log(`✨ It looks like you're starting from scratch.`);
+      console.log();
+      console.log(`✨ Since you're starting from scratch, let's name your project and choose a framework.`);
       console.log();
       const frameworkExists = {
         'autocode': await commandExists('lib'),
@@ -144,6 +170,7 @@ class InitCommand extends Command {
       ]);
       framework = result.framework;
       name = result.name;
+      let username = '';
       console.log();
       console.log(`Great! We'll start a new ${colors.bold('instant.dev')} project with "${colors.bold.green(framework)}".`);
       console.log();
@@ -151,6 +178,33 @@ class InitCommand extends Command {
         if (!frameworkExists['autocode']) {
           childProcess.execSync(`npm i -g lib.cli@latest`, {stdio: 'inherit'});
         }
+        const getUser = async () => {
+          return new Promise((resolve, reject) => {
+            let p = childProcess.spawn(`lib`, [`user`]);
+            let buffers = [];
+            p.stdout.on('data', data => buffers.push(data));
+            p.on('close', async (code) => {
+              const stdout = Buffer.concat(buffers).toString();
+              resolve({code, stdout});
+            });
+          });
+        };
+        let userResult = await getUser();
+        if (userResult.code !== 0) {
+          console.log(`🔒 Log in to Autocode to continue`);
+          console.log(`👉 You can sign up at: ${colors.bold.blue(`https://autocode.com/signup/`)}`);
+          console.log();
+          const result = childProcess.spawnSync(`lib login`, {stdio: 'inherit', shell: true});
+          if (result.signal === 'SIGINT') {
+            console.log();
+            process.exit(2)
+          }
+          userResult = await getUser();
+        }
+        if (userResult.code !== 0) {
+          throw new Error(`Unable to log in to Autocode`);
+        }
+        username = userResult.stdout.replace(/^[\s\S]*?\s+username:\s+(.*?)\s+[\s\S]*?$/gi, '$1') || '';
       } else if (framework === 'vercel') {
         if (!frameworkExists['vercel']) {
           childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
@@ -175,23 +229,15 @@ class InitCommand extends Command {
       for (const filename in files) {
         fileWriter.writeFile(filename, files[filename], false);
       }
+      // Write package.json
+      fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
       fileWriter.writeJSON('package.json', 'name', name);
       fileWriter.writeJSON('package.json', 'private', true);
+      if (framework === 'autocode') {
+        fileWriter.writeJSON('stdlib.json', 'name', `${username}/${name}`);
+      }
       console.log();
       console.log(`Framework "${colors.bold.green(framework)}" project created successfully!`);
-    } else {
-      console.log(`👀 It looks like you're adding ${colors.bold('instant.dev')} to an existing${framework !== 'default' ? ` "${colors.bold.green(framework)}"` : ``} project.`);
-      console.log();
-      let result = await inquirer.prompt([
-        {
-          name: 'verify',
-          type: 'confirm',
-          message: `Continue adding instant.dev to your${framework !== 'default' ? ` "${colors.bold.green(framework)}"` : ``} project?`,
-        }
-      ]);
-      if (!result.verify) {
-        throw new Error(`Initialization aborted`);
-      }
     }
 
     await addDatabase(Instant, 'development', 'main');
