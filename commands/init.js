@@ -233,6 +233,7 @@ class InitCommand extends Command {
       fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
       fileWriter.writeJSON('package.json', 'name', name);
       fileWriter.writeJSON('package.json', 'private', true);
+      // Write the project name to stdlib.json if we're in Autocode
       if (framework === 'autocode') {
         fileWriter.writeJSON('stdlib.json', 'name', `${username}/${name}`);
       }
