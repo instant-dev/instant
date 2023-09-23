@@ -194,7 +194,9 @@ await user.save();
 /* Read */
 user = await User.find(1); // uses id
 user = await User.findBy('email', 'keith@instant.dev');
-user = await User.query().where({email: 'keith@instant.dev'}).first();
+user = await User.query(
+  .where({email: 'keith@instant.dev'})
+  .first();
 let users = await User.query()
   .where({email: 'keith@instant.dev'})
   .select();
