@@ -10,8 +10,11 @@ since 2016 in production at [Autocode](https://autocode.com) where it has
 managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
 
 You'll notice instant.dev is small. It's written in CommonJS. It doesn't use
-TypeScript. Our development principles are straightforward: instant.dev should
-work with any JavaScript stack and help you ship product faster.
+TypeScript. The majority of database input comes from user land at runtime; in
+that vein we've packaged built-in runtime type coercion and safety, and
+parameterized queries provide injection protection. Our development principles
+are straightforward: instant.dev should work with any JavaScript stack and help
+you ship product faster.
 
 Use instant.dev to:
 
