@@ -236,13 +236,19 @@ let users = User.query()
 
 // Allow for OR queries
 users = await User.query()
-  .where({id__in: [7, 8, 9]}, {username__istartswith: 'Rom'}) // Can also pass an array
+  .where( // Can pass in arguments or an array
+    {id__in: [7, 8, 9]},
+    {username__istartswith: 'Rom'}
+  )
   .select();
 
 // Joins
 users = await User.query()
   .join('posts', {title__icontains: 'hello'}) // JOIN ON
-  .where({username: 'fred', posts__like_count__gt: 5}) // query joined table
+  .where({
+    username: 'fred',
+    posts__like_count__gt: 5 // query joined table
+  })
   .select();
 
 // Deeply-nested joins:
