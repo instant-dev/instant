@@ -93,13 +93,6 @@ initializing your instant.dev project. It will;
 - Initialize necessary files in the `_instant/` directory of your project
 - Create an initial migration
 
-## Getting started
-
-If you're getting started from scratch and want a working project right away,
-instant.dev comes with **kits**: sets of models and their corresponding
-migrations that add complex functionality to your app without having to figure
-it all out yourself.
-
 To install the basic `auth` kit which comes with a `User` and `AccessToken`
 model and associated user registration and login endpoints, use:
 
@@ -136,8 +129,8 @@ are:
 ## Using the Instant ORM
 
 Full documentation for the ORM can be found in the
-[@instant.dev/orm](https://github.com/instant-dev/orm) repository. Here is a
-quick example of how you can use the Instant ORM.
+[@instant.dev/orm](https://github.com/instant-dev/orm) repository. Here's
+a quick overview of using the ORM:
 
 ```javascript
 const Instant = require('@instant.dev/orm')();
