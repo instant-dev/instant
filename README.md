@@ -2,13 +2,12 @@
 
 ## Rails-inspired JavaScript ORM and Migrations for Postgres
 
-[**instant.dev**](https://instant.dev) provides a fast, reliable, and heavily
-battle-tested Object-Relational Mapper and Migration Management system for
-Postgres 13+ built in JavaScript. For those familiar with Ruby on Rails, you can
-think of instant.dev like ActiveRecord for the Node.js, Deno and Bun ecosystems.
-We’ve been using it since 2016 in production at [Autocode](https://autocode.com)
-where it has managed over 1 billion records in a 4TB AWS Aurora Postgres
-instance.
+[**instant.dev**](https://instant.dev) provides a fast, reliable, and
+battle-tested ORM and migration management system for Postgres 13+ built in
+JavaScript. For those familiar with Ruby on Rails, you can think of instant.dev
+like ActiveRecord for the Node.js, Deno and Bun ecosystems. We’ve been using it
+since 2016 in production at [Autocode](https://autocode.com) where it has
+managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
 
 You can add instant.dev to any existing JavaScript project or use it to
 scaffold a new Postgres-backed API project from scratch. It works out of the box
@@ -48,14 +47,33 @@ with any PostgreSQL provider: AWS RDS, Railway, Vercel Postgres, Neon, Supabase.
 
 ## Table of Contents
 
-Stay tuned!
+1. [Installation and Usage](#installation-and-usage)
+2. [Getting Started](#getting-started)
+3. [Using `instant`](#using-instant)
+4. [Using the Instant ORM](#using-the-instant-orm)
+5. [Feature breakdown](#feature-breakdown)
+  1. [CRUD operations](#crud-operations)
+  2. [Query composition](#query-composition)
+  3. [Transactions](#transactions)
+  4. [Input validation](#input-validation)
+  5. [Relationship verification](#relationship-verification)
+  6. [Calculated fields](#calculated-fields)
+  7. [Lifecycle callbacks](#lifecycle-callbacks)
+  8. [Migrations](#migrations)
+  9. [Seeding](#seeding)
+  10. [Code Generation](#code-generation)
+6. [Kits](#kits)
+  1. [Kit: auth](#kit-auth)
+    1. [Kit: auth on Autocode](#kit-auth-on-autocode)
+    2. [Kit: auth on Vercel](#kit-auth-on-vercel)
+7. [Acknowledgements](#acknowledgements)
 
-# Installation and Usage
+## Installation and Usage
 
 ```shell
-$ npm i instant.dev -g
-$ cd ~/projects/my-awesome-project
-$ instant init
+npm i instant.dev -g
+cd ~/projects/my-awesome-project
+instant init
 ```
 
 That's it! The command line tool will walk you through the process of
@@ -68,28 +86,23 @@ initializing your instant.dev project. It will;
 - Initialize necessary files in the `_instant/` directory of your project
 - Create an initial migration
 
-# Installing kits
+## Getting started
 
 If you're getting started from scratch and want a working project right away,
 instant.dev comes with **kits**: sets of models and their corresponding
 migrations that add complex functionality to your app without having to figure
 it all out yourself.
 
-If you're starting a new project from scratch, instant.dev comes with **kits**:
-sets of models and their corresponding migrations that add complex functionality
-to your app without having to figure it all out yourself.
-
-Right now the only available kit is:
+To install the basic `auth` kit which comes with a `User` and `AccessToken`
+model and associated user registration and login endpoints, use:
 
 ```shell
-$ instant kit auth
+instant kit auth
 ```
 
-Which creates a `User` and `AccessToken` model, as well as corresponding
-endpoints, that can be used to register and log in users. We'll be adding more
-and welcome contributions!
+You can read more in [Kits: auth](#kits-auth)
 
-## Using the `instant` command line utility
+## Using `instant`
 
 You can look up documentation for the `instant` command line utility at any
 point by running `instant` or `instant help`. The most commonly used methods
@@ -113,6 +126,10 @@ are:
   Autocode
 
 ## Using the Instant ORM
+
+Full documentation for the ORM can be found in the
+[@instant.dev/orm](https://github.com/instant-dev/orm) repository. Here is a
+quick example of how you can use the Instant ORM.
 
 ```javascript
 const Instant = require('@instant.dev/orm')();
@@ -145,66 +162,58 @@ let users = await User.query()
 console.log(users.toJSON());
 ```
 
-Full documentation for the ORM can be found in the
-[@instant.dev/orm](https://github.com/instant-dev/orm) repository.
+## Feature breakdown
 
-# Feature breakdown
+### CRUD operations
 
-## CRUD operations
+### Query composition
 
-## Query composition
+### Transactions
 
-## Transactions
+### Input validation
 
-## Input validation
+### Relationship verification
 
-## Relationship verification
+### Calculated fields
 
-## Calculated fields
+### Lifecycle callbacks
 
-## Lifecycle callbacks
+### Migrations
 
-## Migrations
+### Seeding
 
-## Seeding
+### Code Generation
 
-# Sample projects
+## Kits
 
-Stay tuned!
+Kits provide an easy way to add complex functionality to your instant.dev apps
+without having to write code from scratch. Currently kits support development
+using [Autocode](https://autocode.com/) and [Vercel](https://vercel.com/).
 
-# Roadmap
+Note that the [Autocode CLI](https://github.com/acode/cli) comes packaged with
+its own HTTP wrapper, where `lib .fn.name` will call `/fn/name` on the service
+with a POST request. The `-a` option is shorthand for providing an
+`Authorization: Bearer` header.
 
-Stay tuned!
-
-# Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-# Acknowledgements
-
-Thanks!
-
--- old below --
-
-# Installing kits
-
-## auth
-
-To install the "auth" kit, which contains a **User** and **AccessToken**
-model and provides authentication into a web API via the `Authorization` header:
+### Kit: auth
 
 ```shell
-$ instant kit auth
+instant kit auth
 ```
 
-### Signing up a user
+Creates a `User` and `AccessToken` model, as well as corresponding
+endpoints.
+
+#### Kit: auth on Autocode
+
+##### POST `users/create`
 
 ```shell
-$ curl localhost:3000/api/users --data \
-  "email=keith@instant.dev&password=mypass&repeat_password=mypass"
+lib .users.create \
+  --email keith@instant.dev \
+  --password mypass \
+  --repeat_password=mypass
 ```
-
-Should give you:
 
 ```json
 {
@@ -215,18 +224,18 @@ Should give you:
 }
 ```
 
-### Logging in a user
+##### POST `auth`
 
 ```shell
-$ curl localhost:3000/api/auth --data \
-  "username=keith@instant.dev&password=mypass&grant_type=password"
+lib .auth \
+  --username keith@instant.dev \
+  --password=mypass \
+  --grant_type=password
 ```
-
-Should give you;
 
 ```json
 {
-  "key": "secret_development_K7neQjsdnM2etQ1naPrTFqRMgJWwppvzrbbWefipib4Sqex6hmPrrqvYdczQ7vbp",
+  "key": "secret_development_XXX",
   "ip_address": "::ffff:127.0.0.1",
   "user_agent": "curl/7.79.1",
   "expires_at": "2023-10-18T22:53:36.967Z",
@@ -236,14 +245,11 @@ Should give you;
 }
 ```
 
-### Seeing your own user data
+##### GET `users/me`
 
 ```shell
-$ curl localhost:3000/api/users/me \
-  -H "Authorization: Bearer secret_development_K7neQjsdnM2etQ1naPrTFqRMgJWwppvzrbbWefipib4Sqex6hmPrrqvYdczQ7vbp"
+lib .users.me -a secret_development_XXX
 ```
-
-Should give you;
 
 ```json
 {
@@ -254,14 +260,11 @@ Should give you;
 }
 ```
 
-### Seeing a list of all users
+##### GET `users`
 
 ```shell
-$ curl localhost:3000/api/users \
-  -H "Authorization: Bearer secret_development_K7neQjsdnM2etQ1naPrTFqRMgJWwppvzrbbWefipib4Sqex6hmPrrqvYdczQ7vbp"
+lib .users -a secret_development_XXX
 ```
-
-Should give you;
 
 ```json
 [
@@ -273,3 +276,78 @@ Should give you;
   }
 ]
 ```
+
+#### Kit: auth on Vercel
+
+##### POST `api/users`
+
+```shell
+curl localhost:3000/api/users --data \
+  "email=keith@instant.dev&password=mypass&repeat_password=mypass"
+```
+
+```json
+{
+  "id": 1,
+  "email": "keith@instant.dev",
+  "created_at": "2023-09-18T22:46:44.866Z",
+  "updated_at": "2023-09-18T22:46:44.940Z"
+}
+```
+
+##### POST `api/auth`
+
+```shell
+curl localhost:3000/api/auth --data \
+  "username=keith@instant.dev&password=mypass&grant_type=password"
+```
+
+```json
+{
+  "key": "secret_development_XXX",
+  "ip_address": "::ffff:127.0.0.1",
+  "user_agent": "curl/7.79.1",
+  "expires_at": "2023-10-18T22:53:36.967Z",
+  "is_valid": true,
+  "created_at": "2023-09-18T22:53:36.967Z",
+  "updated_at": "2023-09-18T22:53:36.967Z",
+}
+```
+
+##### GET `api/users/me`
+
+```shell
+curl localhost:3000/api/users/me \
+  -H "Authorization: Bearer secret_development_XXX"
+```
+
+```json
+{
+  "id": 1,
+  "email": "keith@instant.dev",
+  "created_at": "2023-09-18T22:46:44.866Z",
+  "updated_at": "2023-09-18T22:46:44.940Z"
+}
+```
+
+##### GET `api/users`
+
+```shell
+curl localhost:3000/api/users \
+  -H "Authorization: Bearer secret_development_XXX"
+```
+
+```json
+[
+  {
+    "id": 1,
+    "email": "keith@instant.dev",
+    "created_at": "2023-09-18T22:46:44.866Z",
+    "updated_at": "2023-09-18T22:46:44.940Z"
+  }
+]
+```
+
+# Acknowledgements
+
+Thanks!
