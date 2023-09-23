@@ -10,12 +10,12 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-You will notice instant.dev is small. It is written in CommonJS. It is not built
-with TypeScript. The majority of database input comes from user land at runtime;
-in that vein we've packaged built-in runtime type coercion and safety, and
-parameterized queries provide injection protection. Our development principles
-are straightforward: instant.dev should work with any JavaScript stack and help
-you ship product faster.
+You will notice that instant.dev is small. It is written in CommonJS. It is not
+built with TypeScript. The majority of database input comes from user land at
+runtime; in that vein we've packaged built-in runtime type coercion and safety,
+and parameterized queries provide injection protection. Our development
+principles are straightforward: instant.dev should work with any JavaScript
+stack and help you ship product faster.
 
 Use instant.dev to:
 
@@ -183,9 +183,95 @@ console.log(users.toJSON());
 
 ### CRUD operations
 
+```javascript
+const User = Instant.Model('User');
+
+/* Create */
+let user = await User.create({email: 'keith@instant.dev', username: 'keith'});
+user = new User({email: 'keith@instant.dev', username: 'keith'});
+await user.save();
+
+/* Read */
+user = await User.find(1); // uses id
+user = await User.findBy('email', 'keith@instant.dev');
+user = await User.query().where({email: 'keith@instant.dev'}).first();
+let users = await User.query()
+  .where({email: 'keith@instant.dev'})
+  .select();
+
+/* Update */
+user.set('username', 'keith_h');
+await user.save();
+user.read({username: 'keith_h'});
+await user.save();
+users = await User.query()
+  .where({username: 'keith_h'})
+  .update({username: 'keith'});
+
+/* Destroy */
+await user.destroy();
+await user.destroyCascade(); // destroy model + children (useful for foreign keys)
+
+/* ModelArray methods */
+users.setAll('username', 'instant');
+users.readAll({username: 'instant'});
+await users.saveAll();
+await users.destroyAll();
+await users.destroyCascade();
+```
+
 ### Query composition
 
+```javascript
+const User = Instant.Model('User');
+
+// Basic querying
+let users = User.query()
+  .where({id__in: [7, 8, 9]})
+  .orderBy('username', 'ASC')
+  .limit(2)
+  .select();
+
+// Allow for OR queries
+users = await User.query()
+  .where({id__in: [7, 8, 9]}, {username__istartswith: 'Rom'}) // Can also pass an array
+  .select();
+
+// Joins
+users = await User.query()
+  .join('posts', {title__icontains: 'hello'}) // JOIN ON
+  .where({username: 'fred', posts__like_count__gt: 5}) // query joined table
+  .select();
+
+// Deeply-nested joins:
+// only get users who have followers that have posts with images from imgur
+users = await User.query()
+  .join('followers__posts__images')
+  .where({followers__posts__images__url__contains: 'imgur.com'})
+  .select();
+
+// Queries are immutable and composable
+// Each command creates a new query object from the previous one
+let query = User.query();
+let query2 = query.where({username__istartswith: 'Rom'});
+let query3 = query2.orderBy('username', 'ASC');
+let allUsers = await query.select();
+let romUser = await query2.select();
+let orderedUsers = await query3.select();
+```
+
 ### Transactions
+
+```javascript
+const User = Instant.Model('User');
+const Account = Instant.Model('Account');
+
+const txn = Instant.database().createTransaction();
+
+const user = await User.create({email: 'keith@instant.dev'}, txn);
+const account = await Account.create({user_id: user.get('id')}, txn);
+await txn.commit(); // If it fails, will roll back
+```
 
 ### Input validation
 
@@ -367,4 +453,10 @@ curl localhost:3000/api/users \
 
 # Acknowledgements
 
-Thanks!
+Special thank you to [Scott Gamble](https://x.com/threesided) who helps run all
+of the front-of-house work for instant.dev!
+
+- Home    => [instant.dev](https://instant.dev)
+- GitHub  => [instant-dev](https://github.com/instant-dev)
+- Discord => [instant on Discord](https://discord.gg/puVYgA7ZMh)
+- X       => [x.com/instantdevs](https://x.com/instantdevs)
