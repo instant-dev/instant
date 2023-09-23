@@ -11,18 +11,8 @@ where it has managed over 1 billion records in a 4TB AWS Aurora Postgres
 instance.
 
 You can add instant.dev to any existing JavaScript project or use it to
-scaffold a new Postgres-backed API project from scratch.
-
-We built it for development teams that;
-
-1. Are using Postgres (AWS RDS, Railway, Vercel Postgres, Neon, Supabase)
-   to manage their data and are working with one or more JavaScript backends.
-
-2. Need to execute quickly on new product features without in-depth SQL
-   authoring and optimization knowledge.
-
-3. Need table structure, index and foreign key guarantees between multiple local
-   dev environments, staging and prod.
+scaffold a new Postgres-backed API project from scratch. It works out of the box
+with any PostgreSQL provider: AWS RDS, Railway, Vercel Postgres, Neon, Supabase.
 
 ## Features
 
@@ -56,157 +46,14 @@ We built it for development teams that;
 10. **Code generation**: Automatically generate models, migrations and endpoints
     for your project.
 
-## Similarity to Ruby on Rails and ActiveRecord
-
-instant.dev borrows heavily from the Ruby on Rails ecosystem, specifically
-ActiveRecord. The main differences are;
-
-- instant.dev can be dropped in to any existing JavaScript project, you do not
-  need to start a project from scratch.
-
-- Due to the above, instant.dev is less prescriptive of convention over
-  configuration: we're more tolerant of naming choices. For example,
-  `Instant.Model('User')` and `Instant.Model('users')` are both valid ways of
-  accessing the model associated with the `users` table.
-
-- Relationships between models, notably one-to-one and one-to-many, are
-  determined by database structure (foreign keys, uniqueness).
-
-- Migrations are JSON files, not executable JavaScript. In theory the `instant`
-  command line tools can be used to manage Postgres migrations for any code base.
-
-- Postgres is currently the only Database adapter supported, but the
-  [ORM](https://github.com/instant-dev/orm) has been designed with flexibility
-  in mind: an enterprising contributor could add other engines!
-
-An example of a `User` model looks like this:
-
-```javascript
-// _instant/models/user.js
-
-const { InstantORM } = require('@instant.dev/orm');
-const bcrypt = require('bcryptjs');
-
-class User extends InstantORM.Core.Model {
-
-  static tableName = 'users';
-
-  /**
-   * Before the user is saved, we need to hash the password if it's been set
-   * e.g. via User.signup();
-   */
-  async beforeSave (txn) {
-    if (!this.hasErrors()) {
-      // Hash password
-      if (this.hasChanged('password')) {
-        let hash;
-        try {
-          hash = bcrypt.hashSync(this.get('password'), 10);
-        } catch (err) {
-          throw new Error('Could not encrypt password');
-        }
-        this.__safeSet__('password', hash);
-      }
-      // All emails lowercase
-      if (this.hasChanged('email')) {
-        this.set('email', this.get('email').toLowerCase());
-      }
-    }
-  }
-
-  /**
-   * Verifies a user's password from an unencrypted input
-   * @param {string} unencrypted The plaintext password
-   */
-  async verifyPassword (unencrypted) {
-    return new Promise((resolve, reject) => {
-      bcrypt.compare(unencrypted, this.get('password'), (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
-    });
-  }
-
-}
-
-// Validates email and password before .save()
-User.validates('email', 'must be valid', v => v && (v + '').match(/.+@.+\.\w+/i));
-User.validates('password', 'must be at least 5 characters in length', v => v && v.length >= 5);
-
-// hides a field: prevent output via .toJSON()
-User.hides('password');
-
-module.exports = User;
-```
-
-To create a new user:
-
-```javascript
-const Instant = require('@instant.dev/orm');
-await Instant.connect(); // loads from: _instant/db.json
-const User = Instant.Model('User');
-
-// Password will automatically encrypt via bcryptjs due to User#beforeSave
-// This will save the user in the database
-const user = await User.create({
-  email: 'keith@instant.dev',
-  password: 'hunter2'
-});
-
-let hashedPassword = user.get('password'); // password now encrypted
-```
-
-To find all users that have an `@instant.dev` email account:
-
-```javascript
-const Instant = require('@instant.dev/orm');
-await Instant.connect(); // loads from: _instant/db.json
-const User = Instant.Model('User');
-
-let users = User.query()
-  .where({email__iendswith: `@instant.dev`})
-  .select();
-```
-
-For more documentation on the ORM and Model methods, please visit the
-[@instant.dev/orm](https://github.com/instant-dev/orm) repository.
-
 ## Table of Contents
 
 Stay tuned!
 
-# Getting Started
-
-instant.dev consists of two main components:
-
-1. The [instant](https://github.com/instant-dev/cli) command line utility
-   (npm: [instant.dev](https://npmjs.com/package/instant.dev)),
-   a tool for scaffolding projects and managing migrations.
-
-2. The Instant ORM (npm: [@instant.dev/orm](https://npmjs.com/package/@instant.dev/orm)),
-   an Object-Relational Mapper for easy CRUD operations, query composition and
-   transactions.
-
-**To use instant.dev you must have Postgres installed locally.** If you're
-running macOS, the easiest way to manage a local Postgres installation is with
-[Postgres.app](https://postgresapp.com). You can also view Postgres installation
-options at [postgresql.org/download](https://www.postgresql.org/download).
-
-## Installation
-
-To get started with Instant.dev, you'll first install the CLI:
+# Installation and Usage
 
 ```shell
 $ npm i instant.dev -g
-```
-
-Now, visit your main project directory for your Node.js, Deno or Bun project
-and run `instant init`.
-
-```shell
 $ cd ~/projects/my-awesome-project
 $ instant init
 ```
@@ -221,116 +68,60 @@ initializing your instant.dev project. It will;
 - Initialize necessary files in the `_instant/` directory of your project
 - Create an initial migration
 
-You now have an initial migration saved to your filesystem that will
-enable any other developers who work on this branch to keep up to date with
-schema changes to your database.
+# Installing kits
 
-## Using Migrations
+If you're getting started from scratch and want a working project right away,
+instant.dev comes with **kits**: sets of models and their corresponding
+migrations that add complex functionality to your app without having to figure
+it all out yourself.
 
-Migrations are instruction sets that tell us how to alter the structure of a
-relational database. Typically they provide two directions of execution, "up"
-(migration) and "down" (rollback). They allow us ensure data consistency between
-our database and multiple development branches.
+If you're starting a new project from scratch, instant.dev comes with **kits**:
+sets of models and their corresponding migrations that add complex functionality
+to your app without having to figure it all out yourself.
 
-### Why use Migrations?
-
-Say, for example, you're working on your own local development branch and you
-add a table called `receipts`. Your co-worker Nick is working on a different
-branch and has added a table called `orders`. You're both writing logic that
-depends on your migrations, but your database won't have `orders` in it and
-Nick's won't have `receipts`. When you finally go to merge Nick's code in to
-your branch, none of his code will work! In fact your whole app might crash
-because your database state is missing the `orders` table.
-
-Migrations make this problem disappear. Once you merge in Nick's code, you'll
-get his migration in your filesystem. If his migration was made after yours,
-when you try to run your code or take any action, you'll get a notification
-that your local filesystem has migrations your database is missing
-(`local_ahead`). If his migration has an earlier timestamp, you'll be warned
-of an `unsynced` state. Both can be easily rectified by the `instant` command
-line utility, which will allow you to rollback migrations to the last
-synchronized state, and then re-run migrations as expected.
-
-### How do Migrations work?
-
-Migrations with instant.dev work like this;
-
-- The database keeps a record of all migrations it has applied in the
-  `_instant_migrations` table.
-
-- Your local filesystem, usually checked into version control, keeps a record of
-  all migrations in the `./instant/migrations/` directory.
-
-- When the [Instant ORM](https://github.com/instant-dev/orm) starts up, either
-  in code or when you use the CLI, the database's record of migrations and the
-  filesystems are compared.
-
-- If the migrations don't match, you'll get an error and be asked to run
-  commands to synchronize the database and local branch state.
-
-- Every migration you generate will automatically populate a reverse direction
-  so they can be rolled back without issue. eg `createTable` will have a
-  `dropTable` call added for the rollback.
-
-### Creating your first table
-
-To create your first table, simply use the command line:
+Right now the only available kit is:
 
 ```shell
-$ instant new migration
-> Which command would you like to add?
-> o createTable
->   dropTable
->   addColumn
->   alterColumn
->   dropColumn
-> [...]
+$ instant kit auth
 ```
 
-We'll pick `createTable`:
+Which creates a `User` and `AccessToken` model, as well as corresponding
+endpoints, that can be used to register and log in users. We'll be adding more
+and welcome contributions!
 
-```shell
-$ instant new migration
-> Which command would you like to add?: createTable
-> Table name:
-```
+## Using the `instant` command line utility
 
-I recommend adding a table `users` with the column `username`, type `string`.
-Note that you can have multiple commands in a single migration. Once you
-complete the CLI instructions, you should get a file that looks something like
-`./instant/migrations/xxxxxxxxxxxxxx__create_users.json`. If you open it up
-you'll see:
+You can look up documentation for the `instant` command line utility at any
+point by running `instant` or `instant help`. The most commonly used methods
+are:
 
-```json
-{
-  "some_migration": "cool"
-}
-```
-
-This migration file contains everything your database needs to know to both
-run and rollback the migration.
-
-To apply the migration, simply run;
-
-```shell
-$ instant migrate
-```
-
-And voila, you now have a `users` table!
+- `instant g:model` to create a new model
+- `instant g:relationship` to create one-to-one or one-to-many relationships
+  between models
+- `instant g:endpoint` to automatically scaffold Vercel or Autocode endpoints,
+  if applicable
+- `instant db:migrate` to run migrations
+- `instant db:rollback` to rollback migrations
+- `instant db:rollbackSync` to rollback to last synchronized (filesystem x
+  database) migration
+- `instant db:bootstrap` to reset your database, run migrations, and seed data
+- `instant db:add` to add remote databases (AWS RDS, Railway, Vercel Postgres,
+  Neon, Supabase)
+- `instant serve` to run your server using Vercel, Autocode or the command
+  specified in `package.json["scripts"]["start"]`
+- `instant deploy` to run outstanding migrations and deploy to Vercel or
+  Autocode
 
 ## Using the Instant ORM
-
-Now that you have a `users` table, you can import the Instant ORM anywhere
-in your JavaScript project.
 
 ```javascript
 const Instant = require('@instant.dev/orm')();
 
-// defaults to using instant/config.json[process.env.NODE_ENV || 'local']
+// Connect to your database
+// Defaults to using instant/db.json[process.env.NODE_ENV || 'local']
 await Instant.connect();
 
-// Get the user model.
-// Instant automatically maps CamelCase singular to tableized snake_case plural
+// Get the user model: can also use 'user', 'users' to same effect
 const User = Instant.Model('User');
 
 // Create a user
@@ -341,9 +132,16 @@ let user = await User.create({username: 'Billy'});
 console.log(user.toJSON());
 
 let user2 = await User.create({username: 'Sharon'});
-let users = await User.query().select(); // queries all users
+let user3 = await User.create({username: 'William'});
+let user4 = await User.create({username: 'Jill'});
 
-// [{username: 'Billy', ...}, {username: 'Sharon', ...}]
+// Retrieves users with username containing the string 'ill'
+let users = await User.query()
+  .where({username__icontains: 'ill'})
+  .orderBy('username', 'ASC')
+  .select();
+
+// [{username: 'Billy'}, {username: 'Jill'}, {username: 'William'}]
 console.log(users.toJSON());
 ```
 
