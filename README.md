@@ -4,12 +4,13 @@
 
 [**instant.dev**](https://instant.dev) provides a fast, reliable, and
 battle-tested ORM and migration management system for Postgres 13+ built in
-JavaScript. For those familiar with Ruby on Rails, you can think of instant.dev
-like ActiveRecord for the Node.js, Deno and Bun ecosystems. We’ve been using it
-since 2016 in production at [Autocode](https://autocode.com) where it has
-managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
+JavaScript. For those familiar with Ruby on Rails, instant.dev adds
+functionality similar to ActiveRecord to the Node.js, Deno and Bun ecosystems.
+We have been using it since 2016 in production at
+[Autocode](https://autocode.com) where it has managed over 1 billion records in
+a 4TB AWS Aurora Postgres instance.
 
-You'll notice instant.dev is small. It's written in CommonJS. It's not built
+You will notice instant.dev is small. It is written in CommonJS. It is not built
 with TypeScript. The majority of database input comes from user land at runtime;
 in that vein we've packaged built-in runtime type coercion and safety, and
 parameterized queries provide injection protection. Our development principles
