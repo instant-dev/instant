@@ -9,9 +9,15 @@ like ActiveRecord for the Node.js, Deno and Bun ecosystems. We’ve been using i
 since 2016 in production at [Autocode](https://autocode.com) where it has
 managed over 1 billion records in a 4TB AWS Aurora Postgres instance.
 
-You can add instant.dev to any existing JavaScript project or use it to
-scaffold a new Postgres-backed API project from scratch. It works out of the box
-with any PostgreSQL provider: AWS RDS, Railway, Vercel Postgres, Neon, Supabase.
+Use instant.dev to:
+
+- Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations any
+  existing JavaScript project
+- Scaffold new Postgres-backed API projects from scratch using
+  [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
+- Migrate remote databases and deploy in a single step
+- Connect to any PostgreSQL hosts: AWS RDS, Railway, Vercel Postgres, Neon,
+  Supabase
 
 ## Features
 
@@ -122,6 +128,7 @@ are:
   Neon, Supabase)
 - `instant serve` to run your server using Vercel, Autocode or the command
   specified in `package.json["scripts"]["start"]`
+- `instant sql` is a shortcut to `psql` in to any of your databases
 - `instant deploy` to run outstanding migrations and deploy to Vercel or
   Autocode
 
