@@ -378,7 +378,6 @@ export default User;
 Now validations can be used;
 
 ```javascript
-const Instant
 const User = Instant.Model('User');
 
 try {
@@ -424,7 +423,6 @@ export default User;
 Now verifications can be used;
 
 ```javascript
-const Instant
 const User = Instant.Model('User');
 
 try {
@@ -463,7 +461,6 @@ export default User;
 ```
 
 ```javascript
-const Instant
 const User = Instant.Model('User');
 
 let user = await User.create({first_name: 'Steven', last_name: 'Nevets'});
