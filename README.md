@@ -320,6 +320,25 @@ const txn = Instant.database().createTransaction();
 const user = await User.create({email: 'keith@instant.dev'}, txn);
 const account = await Account.create({user_id: user.get('id')}, txn);
 await txn.commit(); // If it fails, will roll back
+
+// Can pass transactions to the following methods:
+Model.find(id, txn);
+Model.findBy(field, value, txn);
+Model.create(data, txn);
+Model.update(id, data, txn);
+Model.updateOrCreateBy(field, data, txn);
+Model.query().count(txn);
+Model.query().first(txn);
+Model.query().select(txn);
+Model.query().update(fields, txn);
+// Instance methods
+model.save(txn);
+model.destroy(txn);
+model.destroyCascade(txn);
+// Instance Array methods
+modelArray.saveAll(txn);
+modelArray.destroyAll(txn);
+modelArray.destroyCascade(txn);
 ```
 
 ### Input validation
@@ -467,10 +486,9 @@ class User extends InstantORM.Core.Model {
   beforeSave (txn) {
     const NameBan = this.getModel('NameBan');
     const nameBans = NameBan.query()
-      .transact(txn)
       .where({username: this.get('username')})
       .limit(1)
-      .select();
+      .select(txn);
     if (nameBans.length) {
       throw new Error(`Username "${this.get('username')}" is not allowed`);
     }
