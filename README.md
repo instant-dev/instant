@@ -158,6 +158,8 @@ import InstantORM from '@instant.dev/orm';
 const Instant = new InstantORM();
 ```
 
+Using the ORM:
+
 ```javascript
 // Connect to your database
 // Defaults to using instant/db.json[process.env.NODE_ENV || 'local']
