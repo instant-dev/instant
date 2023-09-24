@@ -40,7 +40,6 @@ or follow us on X, [@instantdevs](https://x.com/instantdevs).
 
 <div align="center">
   <img src="/_assets/instant-demo.gif"><br>
-  <i>Getting started is a breeze</i>
 </div>
 
 ## Features
