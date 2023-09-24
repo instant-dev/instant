@@ -18,12 +18,12 @@ We have been using it since 2016 in production at
 a 4TB AWS Aurora Postgres instance.
 
 **`instant.dev` is designed to work with any JavaScript stack**.
-It can be used with CommonJS, ESM and TypeScript projects out of the box, but
-there is no build step required to use the library. Generated model files use
-ESM syntax but can easily be converted to CJS. Our experience is that the
-majority of database input errors comes from parsing user land input — like POST
-requests — at runtime; in that vein we've packaged type coercion and safety
-mechanisms into model lifecycle management with validations, verifications and
+It can be used with CommonJS, ESM and TypeScript projects out of the box: there
+is no build step required to use the library. Generated model files use ESM
+syntax but can easily be converted to CJS. Our experience is that the majority
+of database input errors comes from parsing user land input — like POST requests
+— at runtime; in that vein we've packaged type coercion and safety mechanisms
+into model lifecycle management with validations, verifications and
 transactions.
 
 With `instant.dev` you can:
