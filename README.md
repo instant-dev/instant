@@ -30,32 +30,32 @@ Use instant.dev to:
 
 ## Features
 
-- **CRUD operations**
+- [**CRUD operations**](#crud-operations)
   - Create, Read, Update and Destroy records easily
-- **Query composition**
+- [**Query composition**](#query-composition)
   - Build complex SELECT and UPDATE queries with many layers of nested joins and
     conditional statements
-- **Transactions**
+- [**Transactions**](#transactions)
   - Ensure data consistency within logical transaction blocks that can be rolled
     back to prevent writing orphaned data
-- **Input validation**
+- [**Input validation**](#input-validation)
   - Synchronously validate object fields to ensure the right data is stored
-- **Relationship verification**
+- [**Relationship verification**](#relationship-verification)
   - Asynchronously validate relationships between one or more fields and
     external resources before saving
-- **Calculated fields**
+- [**Calculated fields**](#calculated-fields)
   - Automatically populate object fields based on existing data
-- **Lifecycle callbacks**
+- [**Lifecycle callbacks**](#lifecycle-callbacks)
   - Execute custom logic beforeSave(), afterSave(), beforeDestroy() and
     afterDestroy() to perform necessary build and teardown steps inside of
     transactions
-- **Migrations**
+- [**Migrations**](#migrations)
   - Manage local database state via the filesystem to make branched git
     development a breeze
-- **Seeding**
+- [**Seeding**](#seeding)
   - Provide custom JSON files so that all developers can share the same test
     data across development, testing and staging environments
-- **Code generation**
+- [**Code generation**](#code-generation)
   - Automatically generate models, migrations and endpoints for your project
 
 ## Table of Contents
@@ -65,16 +65,6 @@ Use instant.dev to:
 3. [Using `instant`](#using-instant)
 4. [Using the Instant ORM](#using-the-instant-orm)
 5. [Feature breakdown](#feature-breakdown)
-   1. [CRUD operations](#crud-operations)
-   2. [Query composition](#query-composition)
-   3. [Transactions](#transactions)
-   4. [Input validation](#input-validation)
-   5. [Relationship verification](#relationship-verification)
-   6. [Calculated fields](#calculated-fields)
-   7. [Lifecycle callbacks](#lifecycle-callbacks)
-   8. [Migrations](#migrations)
-   9. [Seeding](#seeding)
-   10. [Code Generation](#code-generation)
 6. [Kits](#kits)
    1. [Kit: auth](#kit-auth)
       1. [Kit: auth on Autocode](#kit-auth-on-autocode)
@@ -186,6 +176,7 @@ console.log(users.toJSON());
 ```javascript
 const User = Instant.Model('User');
 
+/* Create */
 let user = await User.create({
   email: 'keith@instant.dev',
   username: 'keith'
