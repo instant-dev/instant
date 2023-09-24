@@ -321,24 +321,24 @@ const user = await User.create({email: 'keith@instant.dev'}, txn);
 const account = await Account.create({user_id: user.get('id')}, txn);
 await txn.commit(); // If it fails, will roll back
 
-// Can pass transactions to the following methods:
-Model.find(id, txn);
-Model.findBy(field, value, txn);
-Model.create(data, txn);
-Model.update(id, data, txn);
-Model.updateOrCreateBy(field, data, txn);
-Model.query().count(txn);
-Model.query().first(txn);
-Model.query().select(txn);
-Model.query().update(fields, txn);
+// Can pass transactions to the following Class methods
+await Model.find(id, txn);
+await Model.findBy(field, value, txn);
+await Model.create(data, txn);
+await Model.update(id, data, txn);
+await Model.updateOrCreateBy(field, data, txn);
+await Model.query().count(txn);
+await Model.query().first(txn);
+await Model.query().select(txn);
+await Model.query().update(fields, txn);
 // Instance methods
-model.save(txn);
-model.destroy(txn);
-model.destroyCascade(txn);
+await model.save(txn);
+await model.destroy(txn);
+await model.destroyCascade(txn);
 // Instance Array methods
-modelArray.saveAll(txn);
-modelArray.destroyAll(txn);
-modelArray.destroyCascade(txn);
+await modelArray.saveAll(txn);
+await modelArray.destroyAll(txn);
+await modelArray.destroyCascade(txn);
 ```
 
 ### Input validation
