@@ -132,7 +132,7 @@ are:
   Neon, Supabase)
 - `instant serve` to run your server using Vercel, Autocode or the command
   specified in `package.json["scripts"]["start"]`
-- `instant sql` is a shortcut to `psql` in to any of your databases
+- `instant sql` is a shortcut to `psql` into any of your databases
 - `instant deploy` to run outstanding migrations and deploy to Vercel or
   Autocode
 
