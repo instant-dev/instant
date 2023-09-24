@@ -17,12 +17,14 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-Our development principle:
-**instant.dev should work with any JavaScript stack and help you ship product faster**.
-Our experience is that the majority of database input errors comes from parsing
-user land input — like POST requests — at runtime; in that vein we've packaged
-type coercion and safety mechanisms into model lifecycle management with
-validations, verifications and transactions.
+**`instant.dev` works with any JavaScript stack and help you ship product faster**.
+It can be used with TypeScript projects out of the box, but we have designed the
+library to work without any build step. Generated model files use CommonJS and
+are dynamically loaded at runtime. We believe the flexibility is worth the
+trade. Our experience is that the majority of database input errors comes from
+parsing user land input — like POST requests — at runtime; in that vein we've
+packaged type coercion and safety mechanisms into model lifecycle management
+with validations, verifications and transactions.
 
 With `instant.dev` you can:
 
@@ -35,8 +37,9 @@ With `instant.dev` you can:
 - Connect to any PostgreSQL host: AWS RDS, Railway, Vercel Postgres, Neon,
   Supabase
 
-Interested in connecting? [Join us on Discord](https://discord.gg/puVYgA7ZMh)
-or follow us on X, [@instantdevs](https://x.com/instantdevs).
+Interested in connecting? Want to help? Are we missing something you'd like to
+see? [Join us on Discord](https://discord.gg/puVYgA7ZMh) or follow us on X,
+[@instantdevs](https://x.com/instantdevs).
 
 <div align="center">
   <img src="/_assets/instant-demo.gif"><br>
