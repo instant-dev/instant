@@ -254,6 +254,15 @@ users = await User.query()
   )
   .select();
 
+// evaluate custom values with SQL commands
+// in this case, get users where their username matches the first part of their
+// email address
+users = await User.query()
+  .where({
+    username: email => `SPLIT_PART(${email}, '@', 1)`
+  })
+  .select();
+
 // Joins
 users = await User.query()
   .join('posts', {title__icontains: 'hello'}) // JOIN ON
@@ -284,6 +293,9 @@ let query3 = query2.orderBy('username', 'ASC');
 let allUsers = await query.select();
 let romUser = await query2.select();
 let orderedUsers = await query3.select();
+
+// You can also just query raw SQL!
+await Instant.database().query(`SELECT * FROM users`);
 ```
 
 ### Transactions
