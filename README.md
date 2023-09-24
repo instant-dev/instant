@@ -62,7 +62,7 @@ Use instant.dev to:
 
 1. [Installation and Usage](#installation-and-usage)
 2. [Getting Started](#getting-started)
-3. [Using `instant`](#using-instant)
+3. [Using the `instant` CLI](#using-the-instant-cli)
 4. [Using the Instant ORM](#using-the-instant-orm)
 5. [Feature breakdown](#feature-breakdown)
 6. [Kits](#kits)
@@ -98,7 +98,7 @@ instant kit auth
 
 You can read more in [Kit: auth](#kit-auth)
 
-## Using `instant`
+## Using the `instant` CLI
 
 You can look up documentation for the `instant` command line utility at any
 point by running `instant` or `instant help`. The most commonly used methods
