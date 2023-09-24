@@ -1,8 +1,8 @@
 <div align="center">
-  <h1><img src="/_assets/instant.png" height="32">instant.dev</h1>
+  <h1><img src="/_assets/instant.png" height="64"> instant.dev</h1>
   <h3>
-    npm: <a href="https://npmjs.org/package/instant.dev">instant.dev <img alt="npm" src="https://img.shields.io/npm/v/instant.dev?label="></a> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main"> /
-    npm: <a href="https://npmjs.org/package/@instant.dev/orm">@instant.dev/orm <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="></a>
+    <a href="https://npmjs.org/package/instant.dev">cli <img alt="npm" src="https://img.shields.io/npm/v/instant.dev?label="></a> /
+    <a href="https://npmjs.org/package/@instant.dev/orm">@instant.dev/orm <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main"></a>
   </h3>
 </div>
 
