@@ -19,15 +19,15 @@ a 4TB AWS Aurora Postgres instance.
 
 **`instant.dev` is designed to work with any JavaScript stack**.
 It can be used with TypeScript projects out of the box, but there is no build
-step required to use the library. Generated model files use CommonJS and are
-dynamically loaded at runtime. Our experience is that the majority of database
-input errors comes from parsing user land input — like POST requests — at
-runtime; in that vein we've packaged type coercion and safety mechanisms into
+step required to use the library. Generated model files use ESM syntax but can
+easily be converted to CJS if necessary. Our experience is that the majority of
+database input errors comes from parsing user land input — like POST requests —
+at runtime; in that vein we've packaged type coercion and safety mechanisms into
 model lifecycle management with validations, verifications and transactions.
 
 With `instant.dev` you can:
 
-- Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations to
+- Add the [Instant ORM](https://github.com/instant-dev/orm) and migrations to
   your existing JavaScript or TypeScript project
 - Scaffold new Postgres-backed API projects from scratch using
   [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
@@ -147,13 +147,14 @@ a quick overview of using the ORM:
 Importing with CommonJS:
 
 ```javascript
-const Instant = require('@instant.dev/orm')();
+const InstantORM = require('@instant.dev/orm');
+const Instant = new InstantORM();
 ```
 
 Importing with ESM:
 
 ```javascript
-import { InstantORM } from '@instant.dev/orm';
+import InstantORM from '@instant.dev/orm';
 const Instant = new InstantORM();
 ```
 
@@ -208,6 +209,7 @@ let user = await User.create({
   email: 'keith@instant.dev',
   username: 'keith'
 });
+// Can also use new keyword to create, must save after
 user = new User({
   email: 'keith@instant.dev',
   username: 'keith'
@@ -253,7 +255,7 @@ await users.destroyCascade();
 const User = Instant.Model('User');
 
 // Basic querying
-let users = User.query()
+let users = await User.query()
   .where({id__in: [7, 8, 9]})
   .orderBy('username', 'ASC')
   .limit(2)
@@ -345,10 +347,10 @@ await modelArray.destroyCascade(txn);
 
 ### Input validation
 
-File: `_instant/models/user.js`
+File: `_instant/models/user.mjs`
 
 ```javascript
-const { InstantORM } = require('@instant.dev/orm');
+import InstantORM from '@instant.dev/orm';
 
 class User extends InstantORM.Core.Model {
 
@@ -368,7 +370,7 @@ User.validates(
   v => v && v.length >= 5
 );
 
-module.exports = User;
+export default User;
 ```
 
 Now validations can be used;
@@ -396,7 +398,7 @@ try {
 File: `_instant/models/user.js`
 
 ```javascript
-const { InstantORM } = require('@instant.dev/orm');
+import InstantORM from '@instant.dev/orm';
 
 class User extends InstantORM.Core.Model {
 
@@ -414,7 +416,7 @@ User.verifies(
   }
 );
 
-module.exports = User;
+export default User;
 ```
 
 Now verifications can be used;
@@ -441,7 +443,7 @@ try {
 File: `_instant/models/user.js`
 
 ```javascript
-const { InstantORM } = require('@instant.dev/orm');
+import InstantORM from '@instant.dev/orm';
 
 class User extends InstantORM.Core.Model {
 
@@ -455,7 +457,7 @@ User.calculates(
 );
 User.hides('last_name');
 
-module.exports = User;
+export default User;
 ```
 
 ```javascript
@@ -479,7 +481,7 @@ let json = user.toJSON();
 File: `_instant/models/user.js`
 
 ```javascript
-const { InstantORM } = require('@instant.dev/orm');
+import InstantORM from '@instant.dev/orm';
 
 class User extends InstantORM.Core.Model {
 
@@ -510,7 +512,7 @@ class User extends InstantORM.Core.Model {
 
 }
 
-module.exports = User;
+export default User;
 ```
 
 ### Migrations
