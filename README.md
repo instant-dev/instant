@@ -2,7 +2,7 @@
 
 ## Rails-inspired JavaScript ORM and Migrations for Postgres
 
-[**instant.dev**](https://instant.dev) provides a fast, reliable, and
+[**`instant.dev`**](https://instant.dev) provides a fast, reliable, and
 battle-tested ORM and migration management system for Postgres 13+ built in
 JavaScript. For those familiar with Ruby on Rails, instant.dev adds
 functionality similar to ActiveRecord to the Node.js, Deno and Bun ecosystems.
@@ -10,14 +10,15 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-You will notice that instant.dev is small. It is written in CommonJS. It is not
-built with TypeScript. The majority of database input comes from user land at
-runtime; in that vein we've packaged built-in runtime type coercion and safety,
-and parameterized queries provide injection protection. Our development
-principles are straightforward: instant.dev should work with any JavaScript
-stack and help you ship product faster.
+Our development principles are straightforward: instant.dev should work with any
+JavaScript stack and help you ship product faster. You will notice that
+`instant.dev` is small. It is written in CommonJS. It is not built with
+TypeScript. Our experience is that the majority of database input errors comes
+from parsing user land input — like POST requests — at runtime; in that vein
+we've packaged type coercion and safety mechanisms into model lifecycle
+management with validations, verifications and transactions.
 
-Use instant.dev to:
+With `instant.dev` you can:
 
 - Add the [Instant ORM](https://githib.com/instant-dev/orm) and migrations to
   your existing JavaScript or TypeScript project
@@ -80,7 +81,7 @@ instant init
 ```
 
 That's it! The command line tool will walk you through the process of
-initializing your instant.dev project. It will;
+initializing your `instant.dev` project. It will;
 
 - Automatically detect whether this is a new project or an existing one
 - Scaffold a new [Vercel](https://vercel.com) or [Autocode](https://autocode.com)
@@ -536,7 +537,7 @@ Four types of code generation are supported:
 
 ## Kits
 
-Kits provide an easy way to add complex functionality to your instant.dev apps
+Kits provide an easy way to add complex functionality to your `instant.dev` apps
 without having to write code from scratch. Currently kits support development
 using [Autocode](https://autocode.com/) and [Vercel](https://vercel.com/).
 
