@@ -202,6 +202,8 @@ user.set('username', 'keith_h');
 await user.save();
 user.read({username: 'keith_h'});
 await user.save();
+
+// Update query: this will bypass validations and verifications
 users = await User.query()
   .where({username: 'keith_h'})
   .update({username: 'keith'});
