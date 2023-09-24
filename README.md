@@ -397,7 +397,7 @@ try {
 
 ### Relationship verification
 
-File: `_instant/models/user.js`
+File: `_instant/models/user.mjs`
 
 ```javascript
 import InstantORM from '@instant.dev/orm';
@@ -442,7 +442,7 @@ try {
 
 ### Calculated fields
 
-File: `_instant/models/user.js`
+File: `_instant/models/user.mjs`
 
 ```javascript
 import InstantORM from '@instant.dev/orm';
@@ -480,7 +480,7 @@ let json = user.toJSON();
 
 ### Lifecycle callbacks
 
-File: `_instant/models/user.js`
+File: `_instant/models/user.mjs`
 
 ```javascript
 import InstantORM from '@instant.dev/orm';
