@@ -96,7 +96,7 @@ model and associated user registration and login endpoints, use:
 instant kit auth
 ```
 
-You can read more in [Kits: auth](#kits-auth)
+You can read more in [Kit: auth](#kit-auth)
 
 ## Using `instant`
 
