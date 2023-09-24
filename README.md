@@ -38,6 +38,8 @@ With `instant.dev` you can:
 Interested in connecting? [Join us on Discord](https://discord.gg/puVYgA7ZMh)
 or follow us on X, [@instantdevs](https://x.com/instantdevs).
 
+<img src="/_assets/instant-demo.gif">
+
 ## Features
 
 - [**CRUD operations**](#crud-operations)
