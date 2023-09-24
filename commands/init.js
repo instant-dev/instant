@@ -244,7 +244,7 @@ class InitCommand extends Command {
     await addDatabase(Instant, 'development', 'main');
 
     Instant.Migrator.enableDangerous();
-    Instant.Migrator.Dangerous.reset();
+    Instant.Migrator.Dangerous.createSeedIfNotExists();
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();

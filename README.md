@@ -302,7 +302,7 @@ let query = User.query();
 let query2 = query.where({username__istartswith: 'Rom'});
 let query3 = query2.orderBy('username', 'ASC');
 let allUsers = await query.select();
-let romUser = await query2.select();
+let romUsers = await query2.select();
 let orderedUsers = await query3.select();
 
 // You can also just query raw SQL!

@@ -52,7 +52,8 @@ class DbBootstrapCommand extends Command {
       }
     }
     Instant.Migrator.enableDangerous();
-    await Instant.Migrator.Dangerous.bootstrap();
+    const seed = Instant.Migrator.Dangerous.filesystem.readSeed();
+    await Instant.Migrator.Dangerous.bootstrap(seed);
     Instant.Migrator.disableDangerous();
     console.log();
 
