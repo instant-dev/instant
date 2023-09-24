@@ -35,7 +35,7 @@ With `instant.dev` you can:
 - Connect to any PostgreSQL host: AWS RDS, Railway, Vercel Postgres, Neon,
   Supabase
 
-Interested in connecting? Join us [on Discord](https://discord.gg/puVYgA7ZMh)
+Interested in connecting? [Join us on Discord](https://discord.gg/puVYgA7ZMh)
 or follow us on X, [@instantdevs](https://x.com/instantdevs).
 
 ## Features
@@ -258,6 +258,10 @@ users = await User.query()
     posts__like_count__gt: 5 // query joined table
   })
   .select();
+users.forEach(user => {
+  let posts = user.joined('posts');
+  console.log(posts.toJSON()); // log all posts
+});
 
 // Deeply-nested joins:
 // only get users who have followers that have posts with images from imgur
@@ -265,6 +269,8 @@ users = await User.query()
   .join('followers__posts__images')
   .where({followers__posts__images__url__contains: 'imgur.com'})
   .select();
+// Access user[0].followers[0].posts[0].images[0] with...
+users[0].joined('followers')[0].joined('posts')[0].joined('images')[0];
 
 // Queries are immutable and composable
 // Each command creates a new query object from the previous one
