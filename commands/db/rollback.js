@@ -20,7 +20,7 @@ class DbRollbackCommand extends Command {
 
   async run (params) {
 
-    const Instant = await loadInstant(true);
+    const Instant = await loadInstant(params, true);
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(

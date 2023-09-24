@@ -88,7 +88,7 @@ class InitCommand extends Command {
       throw new Error(`Initialization aborted`);
     }
 
-    let Instant = await loadInstant();
+    let Instant = await loadInstant(params);
     if (!Instant) {
       console.log();
       console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
@@ -98,7 +98,7 @@ class InitCommand extends Command {
         childProcess.execSync(`npm i @instant.dev/orm --save`, {stdio: 'inherit'});
       }
       if (!Instant) {
-        Instant = await loadInstant(true, false);
+        Instant = await loadInstant(null, true);
       }
     }
 

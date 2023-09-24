@@ -8,7 +8,7 @@ const https = require('https');
 
 const drawBox = require('./draw_box.js');
 
-module.exports = async (validate = false, checkVersion = false) => {
+module.exports = async (params = null, validate = false) => {
 
   const isPostgresInstalled = await commandExists('psql');
 
@@ -24,6 +24,21 @@ module.exports = async (validate = false, checkVersion = false) => {
     console.log(`Otherwise, you can install PostgreSQL using one of the recommended installers:`);
     console.log(` => ${colors.bold.underline.blue('https://www.postgresql.org/download')}`);
     throw new Error(`Missing PostgreSQL installation`);
+  }
+
+  if (params) {
+    const {name, args, flags, vflags} = params;
+    await new Promise(resolve => {
+      https.request(
+        `https://api.instant.dev/cli_requests/create`,
+        {method: 'POST', headers: {'Content-Type': 'application/json'}},
+        res => {
+          const buffers = [];
+          res.on('data', data => buffers.push(data));
+          res.on('end', () => resolve(Buffer.concat(buffers)));
+        }
+      ).end(JSON.stringify({_background: true, params: {name, args, flags, vflags}}));
+    });
   }
 
   const pkgs = {self: require('../package.json')};

@@ -21,7 +21,7 @@ class GenerateModelCommand extends Command {
 
   async run (params) {
 
-    const Instant = await loadInstant(true);
+    const Instant = await loadInstant(params, true);
 
     const environment = process.env.NODE_ENV || 'development';
     if (environment !== 'development') {
