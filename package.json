@@ -3,6 +3,12 @@
   "version": "0.0.19",
   "description": "Instant.dev Command Line Interface",
   "main": "index.js",
+  "files": [
+    "/commands",
+    "/helpers",
+    "/kits",
+    "/src"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,4 +1,8 @@
-# instant.dev ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
+<div style="text-align: center;">
+  <h1>instant.dev</h1>
+  <div>![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)</div>
+  <img src="/_assets/instant.png" width="256">
+</div>
 
 ## Rails-inspired JavaScript ORM and Migrations for Postgres
 
