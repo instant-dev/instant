@@ -1,4 +1,5 @@
-const Instant = require('@instant.dev/orm')();
+const InstantORM = require('@instant.dev/orm');
+const Instant = new InstantORM();
 const Errors = require('../helpers/errors.js');
 
 module.exports = async (req, res) => {

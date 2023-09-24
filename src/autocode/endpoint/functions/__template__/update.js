@@ -1,4 +1,5 @@
-const Instant = require('@instant.dev/orm')();
+const InstantORM = require('@instant.dev/orm');
+const Instant = new InstantORM();
 
 /**
  * Update an existing ModelName

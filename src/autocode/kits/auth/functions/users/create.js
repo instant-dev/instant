@@ -1,5 +1,5 @@
-const Instant = require('@instant.dev/orm')();
-
+const InstantORM = require('@instant.dev/orm');
+const Instant = new InstantORM();
 /**
  * Creates a user
  * @param {string} email User email
