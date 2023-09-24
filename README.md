@@ -186,15 +186,20 @@ console.log(users.toJSON());
 ```javascript
 const User = Instant.Model('User');
 
-/* Create */
-let user = await User.create({email: 'keith@instant.dev', username: 'keith'});
-user = new User({email: 'keith@instant.dev', username: 'keith'});
+let user = await User.create({
+  email: 'keith@instant.dev',
+  username: 'keith'
+});
+user = new User({
+  email: 'keith@instant.dev',
+  username: 'keith'
+});
 await user.save();
 
 /* Read */
 user = await User.find(1); // uses id
 user = await User.findBy('email', 'keith@instant.dev');
-user = await User.query(
+user = await User.query()
   .where({email: 'keith@instant.dev'})
   .first();
 let users = await User.query()
@@ -234,7 +239,7 @@ let users = User.query()
   .limit(2)
   .select();
 
-// Allow for OR queries
+// Query with OR by sending in a list of where objects
 users = await User.query()
   .where( // Can pass in arguments or an array
     {id__in: [7, 8, 9]},
@@ -283,17 +288,258 @@ await txn.commit(); // If it fails, will roll back
 
 ### Input validation
 
+File: `_instant/models/user.js`
+
+```javascript
+const { InstantORM } = require('@instant.dev/orm');
+
+class User extends InstantORM.Core.Model {
+
+  static tableName = 'users';
+
+}
+
+// Validates email and password before .save()
+User.validates(
+  'email',
+  'must be valid',
+  v => v && (v + '').match(/.+@.+\.\w+/i)
+);
+User.validates(
+  'password',
+  'must be at least 5 characters in length',
+  v => v && v.length >= 5
+);
+
+module.exports = User;
+```
+
+Now validations can be used;
+
+```javascript
+const Instant
+const User = Instant.Model('User');
+
+try {
+  await User.create({email: 'invalid'});
+} catch (e) {
+  // Will catch a validation error
+  console.log(e.details);
+  /*
+    {
+      "email": ["must be valid"],
+      "password": ["must be at least 5 characters in length"]
+    }
+  */
+}
+```
+
 ### Relationship verification
+
+File: `_instant/models/user.js`
+
+```javascript
+const { InstantORM } = require('@instant.dev/orm');
+
+class User extends InstantORM.Core.Model {
+
+  static tableName = 'users';
+
+}
+
+// Before saving to the database, asynchronously compare fields to each other
+User.verifies(
+  'phone_number',
+  'must correspond to country and be valid',
+  async (phone_number, country) => {
+    let phoneResult = await someAsyncPhoneValidationAPI(phone_number);
+    return (phoneResult.valid === true && phoneResult.country === country);
+  }
+);
+
+module.exports = User;
+```
+
+Now verifications can be used;
+
+```javascript
+const Instant
+const User = Instant.Model('User');
+
+try {
+  await User.create({phone_number: '+1-416-555-1234', country: 'SE'});
+} catch (e) {
+  // Will catch a validation error
+  console.log(e.details);
+  /*
+    {
+      "phone_number": ["must correspond to country and be valid"],
+    }
+  */
+}
+```
 
 ### Calculated fields
 
+File: `_instant/models/user.js`
+
+```javascript
+const { InstantORM } = require('@instant.dev/orm');
+
+class User extends InstantORM.Core.Model {
+
+  static tableName = 'users';
+
+}
+
+User.calculates(
+  'formatted_name',
+  (first_name, last_name) => `${first_name} ${last_name}`
+);
+User.hides('last_name');
+
+module.exports = User;
+```
+
+```javascript
+const Instant
+const User = Instant.Model('User');
+
+let user = await User.create({first_name: 'Steven', last_name: 'Nevets'});
+let name = user.get('formatted_name') // Steven Nevets
+let json = user.toJSON();
+/*
+  Last name is hidden from .hides()
+  {
+    first_name: 'Steven',
+    formatted_name: 'Steven Nevets'
+  }
+*/
+```
+
 ### Lifecycle callbacks
+
+File: `_instant/models/user.js`
+
+```javascript
+const { InstantORM } = require('@instant.dev/orm');
+
+class User extends InstantORM.Core.Model {
+
+  static tableName = 'users';
+
+  beforeSave (txn) {
+    const NameBan = this.getModel('NameBan');
+    const nameBans = NameBan.query()
+      .transact(txn)
+      .where({username: this.get('username')})
+      .limit(1)
+      .select();
+    if (nameBans.length) {
+      throw new Error(`Username "${this.get('username')}" is not allowed`);
+    }
+  }
+
+  afterSave (txn) {
+    // Create an account after the user id is set
+    // But only when first creating the user
+    if (this.isCreating()) {
+      const Account = this.getModel('Account');
+      await Account.create({user_id: this.get('id')}, txn);
+    }
+  }
+
+  beforeDestroy (txn) { /* before we destroy */ }
+  afterDestroy (txn) { /* after we destroy */ }
+
+}
+
+module.exports = User;
+```
 
 ### Migrations
 
+```shell
+instant g:migration
+```
+
+Can be used to generate migrations like:
+
+```json
+{
+  "id": 20230921192702,
+  "name": "create_users",
+  "up": [
+    [
+      "createTable",
+      "users",
+      [
+        {
+          "name": "email",
+          "type": "string",
+          "properties": {
+            "nullable": false,
+            "unique": true
+          }
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "properties": {
+            "nullable": false
+          }
+        }
+      ]
+    ]
+  ],
+  "down": [
+    [
+      "dropTable",
+      "users"
+    ]
+  ]
+}
+```
+
 ### Seeding
 
+Reset your database and seed values from `_instant/seed.json`;
+
+```shell
+instant db:bootstrap
+```
+
+`seed.json` is an Array of seeds. Anything in the same object is seeded
+simultaneously and there are no guarantees on order. Otherwise, the seeds are
+run in the order provided by the Array.
+
+```json
+[
+  {
+    "User": [
+      {"email": "keith@instant.dev"}
+    ]
+  },
+  {
+    "User": {"email": "scott@instant.dev"},
+    "Post": {"title": "Post by Keith", "user_id": 1}
+  }
+]
+```
+
 ### Code Generation
+
+Four types of code generation are supported:
+
+- **Kits**: Generated from `src/[framework]/kits`, add in complete models,
+  migrations and automatically adds dependencies
+  - `instant kit [kitName]`
+- **Models**: Generates a new model and associated migration
+  - `instant g:endpoint`
+- **Migrations**: Generates a new migration
+  - `instant g:migration`
+- **Endpoints**: Generates CRUD endpoints for a model from `src/[framework]/endpoint`
+  - `instant g:endpoint`
 
 ## Kits
 
