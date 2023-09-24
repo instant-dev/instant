@@ -546,8 +546,8 @@ run in the order provided by the Array.
     ]
   },
   {
-    "User": {"email": "scott@instant.dev"},
-    "Post": {"title": "Post by Keith", "user_id": 1}
+    "User": [{"email": "scott@instant.dev"}],
+    "Post": [{"title": "Post by Keith", "user_id": 1}]
   }
 ]
 ```
