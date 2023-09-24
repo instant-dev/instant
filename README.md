@@ -707,3 +707,5 @@ of the front-of-house work for instant.dev!
 | GitHub | [github.com/instant-dev](https://github.com/instant-dev) |
 | Discord | [discord.gg/puVYgA7ZMh](https://discord.gg/puVYgA7ZMh) |
 | X | [x.com/instantdevs](https://x.com/instantdevs) |
+| X / Keith Horwood | [x.com/keithwhor](https://x.com/keithwhor) |
+| X / Scott Gamble | [x.com/threesided](https://x.com/threesided) |
