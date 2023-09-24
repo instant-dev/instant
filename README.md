@@ -483,7 +483,7 @@ class User extends InstantORM.Core.Model {
 
   static tableName = 'users';
 
-  beforeSave (txn) {
+  async beforeSave (txn) {
     const NameBan = this.getModel('NameBan');
     const nameBans = NameBan.query()
       .where({username: this.get('username')})
@@ -494,7 +494,7 @@ class User extends InstantORM.Core.Model {
     }
   }
 
-  afterSave (txn) {
+  async afterSave (txn) {
     // Create an account after the user id is set
     // But only when first creating the user
     if (this.isCreating()) {
@@ -503,8 +503,8 @@ class User extends InstantORM.Core.Model {
     }
   }
 
-  beforeDestroy (txn) { /* before we destroy */ }
-  afterDestroy (txn) { /* after we destroy */ }
+  async beforeDestroy (txn) { /* before we destroy */ }
+  async afterDestroy (txn) { /* after we destroy */ }
 
 }
 
