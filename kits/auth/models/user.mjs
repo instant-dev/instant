@@ -1,5 +1,5 @@
-const { InstantORM } = require('@instant.dev/orm');
-const bcrypt = require('bcryptjs');
+import InstantORM from '@instant.dev/orm';
+import bcrypt from 'bcryptjs';
 
 // If there is an access token collision,
 // how many times should we retry login?
@@ -177,4 +177,4 @@ User.validates('password', 'must be at least 5 characters in length', v => v && 
 // hides a field: prevent output via .toJSON()
 User.hides('password');
 
-module.exports = User;
+export default User;

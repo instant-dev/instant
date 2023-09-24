@@ -106,7 +106,8 @@ module.exports = async (params = null, validate = false) => {
   const pathname = path.join(process.cwd(), 'node_modules', '@instant.dev/orm');
 
   if (fs.existsSync(pathname)) {
-    return require(pathname)();
+    const InstantORM = require(pathname);
+    return new InstantORM();
   } else if (validate) {
     throw new Error(
       `Instant ORM not installed.\n` +

@@ -1,4 +1,4 @@
-const { InstantORM } = require('@instant.dev/orm');
+import InstantORM from '@instant.dev/orm';
 
 // 30 days
 const DEFAULT_EXPIRATION_LIMIT = 30 * 24 * 60 * 60 * 1000;
@@ -82,4 +82,4 @@ class AccessToken extends InstantORM.Core.Model {
 AccessToken.hides('id');
 AccessToken.hides('user_id');
 
-module.exports = AccessToken;
+export default AccessToken;
