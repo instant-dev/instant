@@ -142,9 +142,20 @@ Full documentation for the ORM can be found in the
 [@instant.dev/orm](https://github.com/instant-dev/orm) repository. Here's
 a quick overview of using the ORM:
 
+Importing with CommonJS:
+
 ```javascript
 const Instant = require('@instant.dev/orm')();
+```
 
+Importing with ESM:
+
+```javascript
+import { InstantORM } from '@instant.dev/orm';
+const Instant = new InstantORM();
+```
+
+```javascript
 // Connect to your database
 // Defaults to using instant/db.json[process.env.NODE_ENV || 'local']
 await Instant.connect();
