@@ -17,13 +17,12 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-Our development principles are straightforward:
+Our development principle:
 **instant.dev should work with any JavaScript stack and help you ship product faster**.
-You will notice that `instant.dev` is small. Our experience is that the majority
-of database input errors comes from parsing user land input — like POST requests
-— at runtime; in that vein we've packaged type coercion and safety mechanisms
-into model lifecycle management with validations, verifications and
-transactions.
+Our experience is that the majority of database input errors comes from parsing
+user land input — like POST requests — at runtime; in that vein we've packaged
+type coercion and safety mechanisms into model lifecycle management with
+validations, verifications and transactions.
 
 With `instant.dev` you can:
 
