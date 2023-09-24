@@ -554,7 +554,7 @@ run in the order provided by the Array.
 
 ### Code Generation
 
-Four types of code generation are supported:
+Five types of code generation are supported:
 
 - **Kits**: Generated from `src/[framework]/kits`, add in complete models,
   migrations and automatically adds dependencies
@@ -563,6 +563,9 @@ Four types of code generation are supported:
   - `instant g:endpoint`
 - **Migrations**: Generates a new migration
   - `instant g:migration`
+- **Relationships**: Generates a new migration that connect models in a
+  one-to-one or many-to-many orientation
+  - `instant g:relationship`
 - **Endpoints**: Generates CRUD endpoints for a model from `src/[framework]/endpoint`
   - `instant g:endpoint`
 
