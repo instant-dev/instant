@@ -17,14 +17,14 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-**`instant.dev` works with any JavaScript stack and help you ship product faster**.
-It can be used with TypeScript projects out of the box, but we have designed the
-library to work without any build step. Generated model files use CommonJS and
-are dynamically loaded at runtime. We believe the flexibility is worth the
-trade. Our experience is that the majority of database input errors comes from
-parsing user land input — like POST requests — at runtime; in that vein we've
-packaged type coercion and safety mechanisms into model lifecycle management
-with validations, verifications and transactions.
+**`instant.dev` is designed to work with any JavaScript stack**.
+It can be used with TypeScript projects out of the box, but there is no build
+step required to use the library. Generated model files use CommonJS and are
+dynamically loaded at runtime. We believe the flexibility is worth the trade.
+Our experience is that the majority of database input errors comes from parsing
+user land input — like POST requests — at runtime; in that vein we've packaged
+type coercion and safety mechanisms into model lifecycle management with
+validations, verifications and transactions.
 
 With `instant.dev` you can:
 
