@@ -701,7 +701,9 @@ curl localhost:3000/api/users \
 Special thank you to [Scott Gamble](https://x.com/threesided) who helps run all
 of the front-of-house work for instant.dev!
 
-- Home    => [instant.dev](https://instant.dev)
-- GitHub  => [instant-dev](https://github.com/instant-dev)
-- Discord => [instant on Discord](https://discord.gg/puVYgA7ZMh)
-- X       => [x.com/instantdevs](https://x.com/instantdevs)
+| Destination | Link |
+| ----------- | ---- |
+| Home | [instant.dev](https://instant.dev) |
+| GitHub | [github.com/instant-dev](https://github.com/instant-dev) |
+| Discord | [discord.gg/puVYgA7ZMh](https://discord.gg/puVYgA7ZMh) |
+| X | [x.com/instantdevs](https://x.com/instantdevs) |
