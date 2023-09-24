@@ -37,8 +37,7 @@ With `instant.dev` you can:
 - Connect to any PostgreSQL host: AWS RDS, Railway, Vercel Postgres, Neon,
   Supabase
 
-Are you interested in connecting, want to help, or is there something you would
-like to see? [Join us on Discord](https://discord.gg/puVYgA7ZMh) or follow us on
+Are you interested in connecting? [Join us on Discord](https://discord.gg/puVYgA7ZMh) or follow us on
 X, [@instantdevs](https://x.com/instantdevs).
 
 <div align="center">
