@@ -1,7 +1,7 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
-const commandExists = require('command-exists');
+const commandExists = require('command-exists').sync;
 
 const fs = require('fs');
 const path = require('path');
@@ -133,8 +133,8 @@ class InitCommand extends Command {
       console.log(`✨ Since you're starting from scratch, let's name your project and choose a framework.`);
       console.log();
       const frameworkExists = {
-        'autocode': await commandExists('lib'),
-        'vercel': await commandExists('vercel')
+        'autocode': commandExists('lib'),
+        'vercel': commandExists('vercel')
       };
       let name = process.cwd().split(path.sep).pop();
       let result = await inquirer.prompt([

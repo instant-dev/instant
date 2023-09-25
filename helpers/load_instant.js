@@ -1,6 +1,6 @@
 const colors = require('colors/safe');
 const semver = require('semver');
-const commandExists = require('command-exists');
+const commandExists = require('command-exists').sync;
 
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,7 @@ const drawBox = require('./draw_box.js');
 
 module.exports = async (params = null, validate = false) => {
 
-  const isPostgresInstalled = await commandExists('psql');
+  const isPostgresInstalled = commandExists('psql');
 
   if (!isPostgresInstalled) {
     console.log();
