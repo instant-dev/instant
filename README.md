@@ -162,7 +162,7 @@ Using the ORM:
 
 ```javascript
 // Connect to your database
-// Defaults to using instant/db.json[process.env.NODE_ENV || 'local']
+// Defaults to using instant/db.json[process.env.NODE_ENV || 'development']
 await Instant.connect();
 
 // Get the user model: can also use 'user', 'users' to same effect

@@ -58,7 +58,7 @@ class GenerateMigrationCommand extends Command {
       for (const command of migration.up) {
         await Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
       }
-    });
+    }
     // Apply changes
     await Instant.Schema.update();
     // Now we have correct schema for creating new migrations
