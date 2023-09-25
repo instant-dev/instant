@@ -325,7 +325,9 @@ const txn = Instant.database().createTransaction();
 
 const user = await User.create({email: 'keith@instant.dev'}, txn);
 const account = await Account.create({user_id: user.get('id')}, txn);
-await txn.commit(); // If it fails, will roll back
+await txn.commit(); // commit queries to database
+// OR...
+await txn.rollback(); // if anything went wrong, rollback nullifies the queries
 
 // Can pass transactions to the following Class methods
 await Model.find(id, txn);
