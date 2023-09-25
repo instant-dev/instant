@@ -29,7 +29,7 @@ module.exports = async (params = null, validate = false) => {
   if (params) {
     const {name, args, flags, vflags} = params;
     await new Promise(resolve => {
-      https.request(
+      const req = https.request(
         `https://api.instant.dev/cli_requests/create`,
         {method: 'POST', headers: {'Content-Type': 'application/json'}},
         res => {
@@ -37,7 +37,9 @@ module.exports = async (params = null, validate = false) => {
           res.on('data', data => buffers.push(data));
           res.on('end', () => resolve(Buffer.concat(buffers)));
         }
-      ).end(JSON.stringify({_background: true, params: {name, args, flags, vflags}}));
+      );
+      req.on('error', () => resolve(null));
+      req.end(JSON.stringify({_background: true, params: {name, args, flags, vflags}}));
     });
   }
 
@@ -45,7 +47,8 @@ module.exports = async (params = null, validate = false) => {
   try {
     pkgs.orm = require(path.join(process.cwd(), '/node_modules/@instant.dev/orm/package.json'));
   } catch (e) {
-    // do nothing
+    // do nothing:
+    // @instant.dev/orm not installed
   }
   const packages = [
     {
@@ -65,19 +68,24 @@ module.exports = async (params = null, validate = false) => {
     checkPackages.map(pkg => {
       return (async () => {
         try {
-          const response = await new Promise(resolve => {
-            https.request(`https://registry.npmjs.org/${pkg.name}/latest`, res => {
+          const response = await new Promise((resolve, reject) => {
+            const req = https.request(`https://registry.npmjs.org/${pkg.name}/latest`, res => {
               const buffers = [];
               res.on('data', data => buffers.push(data));
               res.on('end', () => resolve(Buffer.concat(buffers)));
-            }).end();
+            })
+            req.on('error', err => reject(err));
+            req.end();
           });
           const json = JSON.parse(response.toString());
           pkg.latest = json.version;
           return pkg;
         } catch (e) {
-          console.error(e);
-          throw new Error(`Error validating ${pkg.title} version`);
+          // we want to be able to use CLI offline
+          // or if NPM is down / returning bad data
+          // so just set latest equal to version
+          pkg.latest = pkg.version;
+          return pkg;
         }
       })();
     })
