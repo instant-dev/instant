@@ -59,7 +59,7 @@ class SqlCommand extends Command {
     } else {
       cfg = parseConfig(cfg);
     }
-    psqlCommand = `psql postgres://${cfg.user}:${cfg.password}@${cfg.host}:${cfg.port}/${cfg.database || ''}${cfg.ssl ? '?sslmode=true' : ''}`;
+    psqlCommand = `psql postgres://${cfg.user}:${cfg.password}@${cfg.host}:${cfg.port}/${cfg.database || ''}${cfg.ssl ? '?ssl=true' : ''}`;
     childProcess.spawn(psqlCommand, {stdio: 'inherit', shell: true});
     while (true) {
       await new Promise(r => setTimeout(() => r(), 1000));
