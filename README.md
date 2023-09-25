@@ -231,8 +231,16 @@ let users = await User.query()
 /* Update */
 user.set('username', 'keith_h');
 await user.save();
+
+// Update by reading from data
 user.read({username: 'keith_h'});
 await user.save();
+
+// Update or Create By
+user = await User.updateOrCreateBy(
+  'username',
+  {username: 'keith', email: 'keith+new@instant.dev'}
+);
 
 // Update query: this will bypass validations and verifications
 users = await User.query()
