@@ -87,7 +87,7 @@ module.exports = async (Instant, params) => {
 
   console.log();
 
-  migration.createTable(table, columns);
+  await migration.createTable(table, columns);
   Instant.Migrator.Dangerous.filesystem.write(migration);
   Instant.Generator.extend(table);
 

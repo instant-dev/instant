@@ -186,7 +186,7 @@ module.exports = async (Instant, params) => {
       }
     }
 
-    migration[cmd].apply(migration, insertArgs);
+    await migration[cmd].apply(migration, insertArgs);
 
     console.log();
     let continueResults = await inquirer.prompt([

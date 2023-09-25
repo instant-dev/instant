@@ -116,8 +116,8 @@ module.exports = async (Instant, params) => {
 
   console.log();
 
-  migration.addColumn(table, column, type, {unique});
-  migration.createForeignKey(table, column, parentTable, parentColumn);
+  await migration.addColumn(table, column, type, {unique});
+  await migration.createForeignKey(table, column, parentTable, parentColumn);
 
   Instant.Migrator.Dangerous.filesystem.write(migration);
 
