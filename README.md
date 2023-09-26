@@ -59,7 +59,7 @@ X, [@instantdevs](https://x.com/instantdevs).
 - [**Relationship verification**](#relationship-verification)
   - Asynchronously validate relationships between one or more fields and
     external resources before saving
-- [**Calculated fields**](#calculated-fields)
+- [**Calculated and hidden fields**](#calculated-and-hidden-fields)
   - Automatically populate object fields based on existing data
 - [**Lifecycle callbacks**](#lifecycle-callbacks)
   - Execute custom logic beforeSave(), afterSave(), beforeDestroy() and
@@ -448,7 +448,7 @@ try {
 }
 ```
 
-### Calculated fields
+### Calculated and hidden fields
 
 File: `_instant/models/user.mjs`
 
