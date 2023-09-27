@@ -777,8 +777,7 @@ curl localhost:3000/api/users \
 
 # Acknowledgements
 
-Special thank you to [Scott Gamble](https://x.com/threesided) who helps run all
-of the front-of-house work for instant.dev!
+Special thank you to [Scott Gamble](https://x.com/threesided) who helps run all of the front-of-house work for instant.dev 💜!
 
 | Destination | Link |
 | ----------- | ---- |
