@@ -7,7 +7,7 @@
   <hr>
 </div>
 
-# Rails-inspired JavaScript ORM and Migrations for Postgres
+## Rails-inspired JavaScript ORM and Migrations for Postgres
 
 [**`instant.dev`**](https://instant.dev) provides a fast, reliable and
 battle-tested ORM and migration management system for Postgres 13+ built in
