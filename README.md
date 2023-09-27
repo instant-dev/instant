@@ -7,6 +7,8 @@
   <hr>
 </div>
 
+# Build APIs with JavaScript and Postgres, fast.
+
 ## Rails-inspired JavaScript ORM and Migrations for Postgres
 
 [**`instant.dev`**](https://instant.dev) provides a fast, reliable and
