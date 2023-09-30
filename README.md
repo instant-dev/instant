@@ -282,7 +282,7 @@ export const plugin = async (Instant) => {
       model: 'text-embedding-ada-002',
       input: values
     });
-    return embedding.data.map((entry, i) => entry.embedding);
+    return embedding.data.map(entry => entry.embedding);
   });
 };
 ```
