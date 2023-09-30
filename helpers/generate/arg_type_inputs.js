@@ -77,7 +77,7 @@ const argTypeInputs = {
   },
   'columnProperties': async (db, schema, table, column) => {
     let typeProperties = db.adapter.getTypeProperties(column.type);
-    let properties = await inquirer.prompt([
+    let propList = [
       {
         name: 'nullable',
         type: 'list',
@@ -110,7 +110,26 @@ const argTypeInputs = {
         ],
         default: false
       }
-    ]);
+    ];
+    let typeRequirements = db.adapter.typePropertyRequirements[column.type];
+    if (column.type === 'vector') {
+      // eliminate unique and nullable for vectors, assum defaults
+      propList = [];
+    }
+    if (typeRequirements) {
+      Object.keys(typeRequirements).forEach(key => {
+        propList.unshift({
+          name: key,
+          type: 'input',
+          message: key,
+          validate: typeRequirements[key]
+        });
+        if (column.type === 'vector' && key === 'length') {
+          propList[0].default = 1536; // for openai easy of use
+        }
+      });
+    }
+    let properties = await inquirer.prompt(propList);
     Object.keys(properties).forEach(key => {
       if (properties[key] === typeProperties[key]) {
         delete properties[key];
