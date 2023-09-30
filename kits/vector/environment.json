@@ -1,0 +1,7 @@
+[
+  {
+    "name": "OPENAI_API_KEY",
+    "description": "Please provide your OpenAI API key\nKeys are available at => https://platform.openai.com/account/api-keys",
+    "defaultValue": "none"
+  }
+]

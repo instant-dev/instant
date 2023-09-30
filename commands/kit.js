@@ -24,14 +24,21 @@ class KitCommand extends Command {
     };
   }
 
-  async validateKit (name) {
+  async validateKit (name, instantDirectory) {
+    if (instantDirectory.startsWith('./')) {
+      instantDirectory = instantDirectory.slice(2);
+    }
+    if (instantDirectory.endsWith('/')) {
+      instantDirectory = instantDirectory.slice(0, -1);
+    }
     let kit = {
       name: (name || '').trim(),
       framework: fileWriter.determineFramework(),
-      migrations: {},
+      migrations: [],
       models: {},
       files: {},
-      dependencies: {}
+      dependencies: {},
+      environment: []
     };
     const kitListRoot = path.join(__dirname, '..', 'kits');
     const srcRoot = path.join(__dirname, '..', 'src');
@@ -44,8 +51,10 @@ class KitCommand extends Command {
     const kitRoot = path.join(kitListRoot, kit.name);
     const migrationsRoot = path.join(kitRoot, 'migrations');
     const modelsRoot = path.join(kitRoot, 'models');
+    const pluginFilesRoot = path.join(kitRoot, 'plugins');
     const frameworkFilesRoot = path.join(srcRoot, kit.framework, 'kits', kit.name);
     const depsPath = path.join(kitRoot, 'dependencies.json');
+    const envPath = path.join(kitRoot, 'environment.json');
     if (fs.existsSync(migrationsRoot)) {
       try {
         kit.migrations = fs.readdirSync(migrationsRoot)
@@ -69,20 +78,36 @@ class KitCommand extends Command {
         throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
       }
     }
+    if (fs.existsSync(pluginFilesRoot)) {
+      kit.files = fileWriter.readRecursive(pluginFilesRoot, {}, `/${instantDirectory}/plugins`);
+    }
     if (fs.existsSync(frameworkFilesRoot)) {
-      kit.files = fileWriter.readRecursive(frameworkFilesRoot);
+      kit.files = fileWriter.readRecursive(frameworkFilesRoot, kit.files);
     } else {
-      console.log();
-      console.log(colors.bold.yellow('Warning: ') + ` This kit is missing files for your framework "${colors.bold.green(kit.framework)}"`);
-      console.log(`You can still add the models and run migrations, but you'll need to create your own endpoints.`);
-      console.log();
-      let proceedResult = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'proceed',
-        message: `Would you like to proceed anyway?`
-      }]);
-      if (!proceedResult.proceed) {
-        throw new Error(`kit installation aborted`);
+      // Check to see if any other framework has files for this kit,
+      // if it does, this kit is missing files
+      const frameworks = fs.readdirSync(srcRoot);
+      const foundFiles = false;
+      for (const f of frameworks) {
+        const fpath = path.join(srcRoot, f, 'kits', kit.name);
+        if (fs.existsSync(fpath)) {
+          foundFiles = true;
+          break;
+        }
+      }
+      if (foundFiles) {
+        console.log();
+        console.log(colors.bold.yellow('Warning: ') + ` This kit is missing files for your framework "${colors.bold.green(kit.framework)}"`);
+        console.log(`You can still add the models and run migrations, but you'll need to create your own endpoints.`);
+        console.log();
+        let proceedResult = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'proceed',
+          message: `Would you like to proceed anyway?`
+        }]);
+        if (!proceedResult.proceed) {
+          throw new Error(`kit installation aborted`);
+        }
       }
     }
     if (fs.existsSync(depsPath)) {
@@ -91,6 +116,14 @@ class KitCommand extends Command {
         kit.dependencies = JSON.parse(deps.toString());
       } catch (e) {
         throw new Error(`Invalid dependencies in "${depsPath}":\n${e.message}`);
+      }
+    }
+    if (fs.existsSync(envPath)) {
+      let envVars = fs.readFileSync(envPath);
+      try {
+        kit.environment = JSON.parse(envVars.toString());
+      } catch (e) {
+        throw new Error(`Invalid environment in "${envPath}":\n${e.message}`);
       }
     }
     return kit;
@@ -119,7 +152,10 @@ class KitCommand extends Command {
       `for framework "${colors.bold.green(fileWriter.determineFramework())}"...`
     );
 
-    const kit = await this.validateKit(params.args[0]);
+    const kit = await this.validateKit(
+      params.args[0],
+      Instant.constructor.Core.DB.SchemaManager.rootDirectory
+    );
     console.log();
 
     Instant.enableLogs(2);
@@ -155,13 +191,31 @@ class KitCommand extends Command {
     let deps = Object.keys(pkg.dependencies);
     if (deps.length > 0) {
       console.log();
-      console.log(colors.bold.black(`Installing: `) + `"package.json" dependencies "${deps.join(", ")}"`);
+      console.log(colors.bold.black(`Installing: `) + `"package.json" dependencies "${deps.join('", "')}"`);
       childProcess.execSync(`npm i`, {stdio: 'inherit'});
+      console.log();
     }
     if ('link' in params.vflags) {
       console.log();
       console.log(colors.bold.black(`Installing: `) + `Linking @instant.dev/orm ...`);
       childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
+      console.log();
+    }
+
+    for (const envVar of kit.environment) {
+      const message = (envVar.description || '')
+        .replace(/https?:\/\/[^\s]+/gi, ($0) => colors.bold.blue.underline($0));
+      console.log(message);
+      console.log();
+      const envResult = await inquirer.prompt([{
+        name: envVar.name,
+        type: 'input',
+        default: envVar.defaultValue
+      }]);
+      let value = envResult[envVar.name];
+      console.log();
+      Instant.writeEnv(envVar.name, value);
+      console.log();
     }
 
     // Write migrations, models and files
@@ -174,7 +228,7 @@ class KitCommand extends Command {
       Instant.Generator.write(filename, model);
     }
     for (const filename in kit.files) {
-      fileWriter.writeFile(filename, kit.files[filename]);
+      fileWriter.writeFile(filename, kit.files[filename], false);
     }
 
     // Run any new migrations

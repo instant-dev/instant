@@ -14,16 +14,17 @@ module.exports = {
     }
   },
 
-  readRecursive (root, pathname = '', files = {}) {
+  readRecursive (root, files = {}, prefix = '', pathname = '') {
+    files = files || {};
     let filenames = fs.readdirSync(path.join(root, pathname));
     filenames.forEach(filename => {
       let filepath = [pathname, filename].join('/');
       let fullpath = path.join(root, filepath);
       let stat = fs.statSync(fullpath);
       if (stat.isDirectory()) {
-        this.readRecursive(root, filepath, files);
+        this.readRecursive(root, files, prefix, filepath);
       } else {
-        files[filepath] = fs.readFileSync(fullpath);
+        files[`${prefix}${filepath}`] = fs.readFileSync(fullpath);
       }
     });
     return files;
