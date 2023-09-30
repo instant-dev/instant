@@ -48,6 +48,9 @@ X, [@instantdevs](https://x.com/instantdevs).
 
 - [**CRUD operations**](#crud-operations)
   - Create, Read, Update and Destroy records easily
+- [**Vector fields**](#vector-fields)
+  - Build AI-integrated applications and add search by easily creating, updating and
+    querying against vectorized representations of your data
 - [**Query composition**](#query-composition)
   - Build complex SELECT and UPDATE queries with many layers of nested joins and
     conditional statements
@@ -258,6 +261,73 @@ await users.saveAll();
 await users.destroyAll();
 await users.destroyCascade();
 ```
+
+### Vector fields
+
+`instant.dev` comes with built-in support for [pgvector](https://github.com/pgvector/pgvector) and the
+`vector` field type. For full instructions on using vectors please check out the
+[Instant ORM: Vector fields](https://github.com/instant-dev/orm#vector-fields) documentation.
+
+Set a vector engine via a plugin (OpenAI is the default):
+
+File `_instant/plugins/000_set_vector_engine.mjs`:
+
+```javascript
+import OpenAI from 'openai';
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+
+export const plugin = async (Instant) => {
+  Instant.Vectors.setEngine(async (values) => {
+    const embedding = await openai.embeddings.create({
+      model: 'text-embedding-ada-002',
+      input: values
+    });
+    return embedding.data.map((entry, i) => entry.embedding);
+  });
+};
+```
+
+Explain how we want to automatically store vector fields:
+
+File: `_instant/models/blog_post.mjs`
+
+```javascript
+import InstantORM from '@instant.dev/orm';
+
+class BlogPost extends InstantORM.Core.Model {
+
+  static tableName = 'blog_posts';
+
+}
+
+// Stores the `title` and `content` fields together as a vector
+// in the `content_embedding` vector field
+BlogPost.vectorizes(
+  'content_embedding',
+  (title, content) => `Title: ${title}\n\nBody: ${content}`
+);
+// optional, just prevents .toJSON() printing the entire array
+BlogPost.hides('content_embedding');
+
+export default BlogPost;
+```
+
+And query our vector fields:
+
+```javascript
+const blogPost = await BlogPost.create({title: `My first post`, content: `some content`});
+const vector = blogPost.get('content_embedding'); // length 1,536 array
+
+// Find the top 10 blog posts matching "blog posts about dogs"
+// Automatically converts query to a vector
+let searchBlogPosts = await BlogPost.query()
+  .search('content_embedding', 'blog posts about dogs')
+  .limit(10)
+  .select();
+```
+
+You can read more on vector queries at
+[Composer#search](https://github.com/instant-dev/orm#composersearch) and [Composer#similarity](https://github.com/instant-dev/orm#composersimilarity).
 
 ### Query composition
 
