@@ -13,7 +13,7 @@ class DbExtCommand extends Command {
     const environment = process.env.NODE_ENV || 'development';
     return {
       description: 'Manages extensions for your database',
-      args: [name],
+      args: ['name'],
       flags: {},
       vflags: {
         enable: `enables the extension`,
