@@ -245,6 +245,7 @@ class InitCommand extends Command {
 
     Instant.Migrator.enableDangerous();
     Instant.Migrator.Dangerous.createSeedIfNotExists();
+    Instant.Migrator.Dangerous.filesystem.clear();
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();
