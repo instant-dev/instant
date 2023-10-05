@@ -155,7 +155,12 @@ class InitCommand extends Command {
           name: 'framework',
           type: 'list',
           message: `Select a framework / host to start with`,
+          default: `instant`,
           choices: [
+            {
+              name: `Instant API ${colors.green.dim('(recommended)')}`,
+              value: `instant`
+            },
             {
               name: `Autocode${colors.dim(frameworkExists['autocode'] ? `` : ` (will install)`)}`,
               value: `autocode`
