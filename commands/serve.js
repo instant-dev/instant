@@ -56,7 +56,8 @@ class ServeCommand extends Command {
           throw new Error(`Could not read "package.json"`);
         }
         if (pkg?.scripts?.start) {
-          console.log(`Running script: ${pkg.scripts.start} ...`);
+          console.log(`Running script: ${colors.blue.bold(pkg.scripts.start)} ...`);
+          console.log();
           childProcess.spawnSync(pkg.scripts.start, {stdio: 'inherit', shell: true});
         } else {
           throw new Error(`Could not find "package.json"["scripts"]["start"]`);

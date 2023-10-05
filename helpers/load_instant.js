@@ -50,6 +50,12 @@ module.exports = async (params = null, validate = false) => {
     // do nothing:
     // @instant.dev/orm not installed
   }
+  try {
+    pkgs.api = require(path.join(process.cwd(), '/node_modules/@instant.dev/api/package.json'));
+  } catch (e) {
+    // do nothing:
+    // @instant.dev/api not installed
+  }
   const packages = [
     {
       title: 'Instant CLI',
@@ -61,6 +67,11 @@ module.exports = async (params = null, validate = false) => {
       title: 'Instant ORM',
       name: pkgs.orm ? pkgs.orm.name : null,
       version: pkgs.orm ? pkgs.orm.version : null
+    },
+    {
+      title: 'Instant API',
+      name: pkgs.api ? pkgs.api.name : null,
+      version: pkgs.api ? pkgs.api.version : null
     }
   ];
   const checkPackages = packages.filter(pkg => !!pkg.name);

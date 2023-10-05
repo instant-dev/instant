@@ -12,6 +12,36 @@ const addDatabase = require('../helpers/add_database.js');
 const fileWriter = require('../helpers/file_writer.js');
 const drawBox = require('../helpers/draw_box.js');
 
+const writeInitFiles = (pathname, pkg) => {
+  const files = fileWriter.readRecursive(pathname);
+  for (const filename in files) {
+    if (filename === '/package.json') {
+      let json;
+      try {
+        json = JSON.parse(files[filename].toString());
+      } catch (e) {
+        throw new Error(`Invalid "package.json" in init files`);
+      }
+      const scripts = json.scripts || {};
+      const deps = json.dependencies || {};
+      for (const key in scripts) {
+        fileWriter.writeJSON('package.json', `scripts.${key}`, scripts[key]);
+      }
+      const depList = [];
+      for (const name in deps) {
+        depList.push(`${name}@${deps[name]}`);
+      }
+      if (depList.length) {
+        const installString = `npm i ${depList.join(' ')} --save`;
+        childProcess.execSync(installString, {stdio: 'inherit'});
+        console.log();
+      }
+    } else {
+      fileWriter.writeFile(filename, files[filename], false);
+    }
+  }
+};
+
 class InitCommand extends Command {
 
   constructor() {
@@ -100,6 +130,8 @@ class InitCommand extends Command {
       if (!Instant) {
         Instant = await loadInstant(null, true);
       }
+    } else {
+      console.log();
     }
 
     Instant.enableLogs(2);
@@ -232,34 +264,8 @@ class InitCommand extends Command {
       if (!fs.existsSync(frameworkFilesRoot)) {
         throw new Error(`No init template files found for "${framework}"`);
       }
-      const files = fileWriter.readRecursive(frameworkFilesRoot);
-      for (const filename in files) {
-        if (filename === 'package.json') {
-          let json;
-          try {
-            json = JSON.parse(files[filename].toString());
-          } catch (e) {
-            throw new Error(`Invalid "package.json" in init files`);
-          }
-          const scripts = json.scripts || {};
-          const deps = json.dependencies || {};
-          for (const key in scripts) {
-            pkg.scripts = pkg.scripts || {};
-            pkg.scripts[key] = scripts[key];
-          }
-          const depList = [];
-          for (const name in deps) {
-            depList.push(`${name}@${deps[name]}`);
-          }
-          if (depList.length) {
-            childProcess.execSync(`npm i ${depList.join(' ')} --save`, {stdio: 'inherit'});
-          }
-        } else {
-          fileWriter.writeFile(filename, files[filename], false);
-        }
-      }
+      writeInitFiles(frameworkFilesRoot);
       // Write package.json
-      fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
       fileWriter.writeJSON('package.json', 'name', name);
       fileWriter.writeJSON('package.json', 'private', true);
       // Write the project name to stdlib.json if we're in Autocode
@@ -268,6 +274,17 @@ class InitCommand extends Command {
       }
       console.log();
       console.log(`Framework "${colors.bold.green(framework)}" project created successfully!`);
+    } else {
+      const srcRoot = path.join(__dirname, '..', 'src');
+      const frameworkFilesRoot = path.join(srcRoot, framework, 'init');
+      if (!fs.existsSync(frameworkFilesRoot)) {
+        throw new Error(`No init template files found for "${framework}"`);
+      }
+      writeInitFiles(frameworkFilesRoot);
+      // Write package.json
+      fileWriter.writeJSON('package.json', 'private', true);
+      console.log();
+      console.log(`Framework "${colors.bold.green(framework)}" project initialized successfully!`);
     }
 
     await addDatabase(Instant, 'development', 'main');

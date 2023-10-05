@@ -7,8 +7,7 @@ const Instant = await InstantORM.connectToPool();
 export default async (context) => {
   return {
     message: [
-      `Welcome to Instant API and Instant ORM powered by instant.dev!`,
-      `This is a test endpoint that provides some connection latency data.`,
+      `Welcome to Instant API and Instant ORM powered by instant.dev!`
     ]
   };
 };
