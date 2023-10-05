@@ -4,10 +4,13 @@
   <h3>
     <a href="https://github.com/instant-dev/orm">@instant.dev/orm</a> <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main">
   </h3>
+  <h3>
+    <a href="https://github.com/instant-dev/api">@instant.dev/api</a> <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main">
+  </h3>
   <hr>
 </div>
 
-## Rails-inspired JavaScript ORM and Migrations for Postgres
+## JavaScript + Postgres API Framework: ORM, Migrations, Vectors and Typed APIs
 
 [**`instant.dev`**](https://instant.dev) provides a fast, reliable and
 battle-tested ORM and migration management system for Postgres 13+ built in
@@ -17,20 +20,12 @@ We have been using it since 2016 in production at
 [Autocode](https://autocode.com) where it has managed over 1 billion records in
 a 4TB AWS Aurora Postgres instance.
 
-**`instant.dev` is designed to work with any JavaScript stack**.
-It can be used with CommonJS, ESM and TypeScript projects out of the box: there
-is no build step required to use the library. Generated model files use ESM
-syntax but can easily be converted to CJS. Our experience is that the majority
-of database input errors comes from parsing user land input — like POST requests
-— at runtime; in that vein we've packaged type coercion and safety mechanisms
-into model lifecycle management with validations, verifications and
-transactions.
-
 With `instant.dev` you can:
 
 - Add the [Instant ORM](https://github.com/instant-dev/orm) and migrations to
   your existing JavaScript or TypeScript project
 - Scaffold new Postgres-backed API projects from scratch using
+  [Instant API](https://github.com/instant-dev/api),
   [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
 - Generate new migrations, models and endpoints
 - Migrate remote databases and deploy in a single step
