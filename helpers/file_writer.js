@@ -9,6 +9,8 @@ module.exports = {
       return 'vercel';
     } else if (fs.existsSync('stdlib.json')) {
       return 'autocode';
+    } else if (fs.existsSync('instant.js')) {
+      return 'instant';
     } else {
       return 'default';
     }

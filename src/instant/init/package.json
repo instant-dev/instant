@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "node instant.mjs"
+  },
+  "dependencies": {
+    "@instant.dev/api": "latest",
+    "dotenv": "latest"
+  }
+}

@@ -217,6 +217,8 @@ class InitCommand extends Command {
         if (result.signal === 'SIGINT') {
           process.exit(2)
         }
+      } else if (framework === 'instant') {
+        // do nothing
       } else {
         throw new Error(`Framework "${framework}" not yet supported`);
       }

@@ -37,17 +37,15 @@ class ServeCommand extends Command {
       );
     }
 
-    if (framework !== 'default') {
+    console.log();
+    console.log(`Running development server for framework "${colors.bold.green(framework)}" ...`);
+
+    if (framework === 'autocode') {
       console.log();
-      console.log(`Running development server for framework "${colors.bold.green(framework)}" ...`);
+      childProcess.spawnSync(`lib http`, {stdio: 'inherit', shell: true});
+    } else if (framework === 'vercel') {
       console.log();
-      if (framework === 'autocode') {
-        childProcess.spawnSync(`lib http`, {stdio: 'inherit', shell: true});
-      } else if (framework === 'vercel') {
-        childProcess.spawnSync(`vercel dev`, {stdio: 'inherit', shell: true});
-      } else {
-        throw new Error(`Could not find development server command for "${framework}"`);
-      }
+      childProcess.spawnSync(`vercel dev`, {stdio: 'inherit', shell: true});
     } else {
       const pkgExists = fs.existsSync('package.json');
       if (pkgExists) {
@@ -58,6 +56,7 @@ class ServeCommand extends Command {
           throw new Error(`Could not read "package.json"`);
         }
         if (pkg?.scripts?.start) {
+          console.log(`Running script: ${pkg.scripts.start} ...`);
           childProcess.spawnSync(pkg.scripts.start, {stdio: 'inherit', shell: true});
         } else {
           throw new Error(`Could not find "package.json"["scripts"]["start"]`);
