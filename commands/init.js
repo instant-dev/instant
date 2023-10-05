@@ -234,7 +234,29 @@ class InitCommand extends Command {
       }
       const files = fileWriter.readRecursive(frameworkFilesRoot);
       for (const filename in files) {
-        fileWriter.writeFile(filename, files[filename], false);
+        if (filename === 'package.json') {
+          let json;
+          try {
+            json = JSON.parse(files[filename].toString());
+          } catch (e) {
+            throw new Error(`Invalid "package.json" in init files`);
+          }
+          const scripts = json.scripts || {};
+          const deps = json.dependencies || {};
+          for (const key in scripts) {
+            pkg.scripts = pkg.scripts || {};
+            pkg.scripts[key] = scripts[key];
+          }
+          const depList = [];
+          for (const name in deps) {
+            depList.push(`${name}@${deps[name]}`);
+          }
+          if (depList.length) {
+            childProcess.execSync(`npm i ${depList.join(' ')} --save`, {stdio: 'inherit'});
+          }
+        } else {
+          fileWriter.writeFile(filename, files[filename], false);
+        }
       }
       // Write package.json
       fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
