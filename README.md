@@ -5,12 +5,12 @@
     <a href="https://github.com/instant-dev/orm">@instant.dev/orm</a> <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main">
   </h3>
   <h3>
-    <a href="https://github.com/instant-dev/api">@instant.dev/api</a> <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/orm?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/orm.svg?branch=main">
+    <a href="https://github.com/instant-dev/api">@instant.dev/api</a> <img alt="npm" src="https://img.shields.io/npm/v/@instant.dev/api?label="> <img alt="build status" src="https://app.travis-ci.com/instant-dev/api.svg?branch=main">
   </h3>
   <hr>
 </div>
 
-## JavaScript + Postgres API Framework: ORM, Migrations, Vectors and Typed APIs
+## JavaScript + Postgres API Framework with ORM, Migrations and Vectors
 
 [**`instant.dev`**](https://instant.dev) provides a fast, reliable and
 battle-tested ORM and migration management system for Postgres 13+ built in
