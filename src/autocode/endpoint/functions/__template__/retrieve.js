@@ -11,8 +11,6 @@ module.exports = async (id, context) => {
   const ModelName = Instant.Model('ModelName');
 
   let modelName = await ModelName.find(id);
-  modelName.read(context.params);
-  await modelName.save();
   return modelName;
 
 };
