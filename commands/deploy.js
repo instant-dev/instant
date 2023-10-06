@@ -16,7 +16,7 @@ class DeployCommand extends Command {
 
   help () {
     return {
-      description: 'Deploys a project using your framework of choice',
+      description: 'Deploys a project using your host of choice',
       args: [],
       flags: {},
       vflags: {
@@ -25,13 +25,10 @@ class DeployCommand extends Command {
     };
   }
 
-  printRecommendedEnvironments (framework) {
-    if (framework === 'vercel') {
+  printRecommendedEnvironments (deployTarget) {
+    if (deployTarget === 'vercel') {
       return `Available environments for "vercel" are:\n` +
         `preview, production`;
-    } else if (framework === 'autocode') {
-      return `Recommended environments for "autocode" are:\n` +
-        `staging, release`;
     } else {
       return `Recommended environments are:\n` +
         `staging, production`;
@@ -42,7 +39,7 @@ class DeployCommand extends Command {
 
     const Instant = await loadInstant(params, true);
     const environment = process.env.NODE_ENV || 'development';
-    const framework = fileWriter.determineFramework();
+    const deployTarget = fileWriter.determineDeployTarget();
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -57,7 +54,7 @@ class DeployCommand extends Command {
     if (!env) {
       throw new Error(
         `Must specify environment with --env [environment].\n` +
-        this.printRecommendedEnvironments(framework)
+        this.printRecommendedEnvironments(deployTarget)
       );
     } else if (env === 'development') {
       throw new Error(
@@ -70,17 +67,15 @@ class DeployCommand extends Command {
     }
 
     /**
-     * Framework-specific deploy environment restrictions
+     * Host-specific deploy environment restrictions
      */
-    if (framework === 'vercel') {
+    if (deployTarget === 'vercel') {
       if (env !== 'preview' && env !== 'production') {
-        throw new Error(`Only valid environments for framework "vercel" are: preview, production`);
+        throw new Error(`Only valid environments for deployment target "vercel" are: preview, production`);
       }
-    } else if (framework === 'autocode') {
-      // do nothing
     } else {
       throw new Error(
-        `Framework "${framework}" deployments not yet supported.\n` +
+        `We can not determine your deployment target host.\n` +
         `You should run \`instant db:migrate --env ${env}\`,\n` +
         `and then use your manual deployment method.`
       );
@@ -89,7 +84,7 @@ class DeployCommand extends Command {
     const cfg = Instant.Config.read(env, 'main');
 
     console.log();
-    console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(framework)}" to environment "${colors.bold.green(env)}"...`);
+    console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(deployTarget)}" to environment "${colors.bold.green(env)}"...`);
     console.log();
 
     Instant.enableLogs(2);
@@ -138,7 +133,7 @@ class DeployCommand extends Command {
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
     console.log();
-    console.log(colors.bold(`Deploying:`) + ` Running "${colors.bold.green(framework)}" deploy script for "${colors.bold.green(env)}"...`);
+    console.log(colors.bold(`Deploying:`) + ` Running "${colors.bold.green(deployTarget)}" deploy script for "${colors.bold.green(env)}"...`);
 
     // Only deploy environment-specific database info
     const dbPathname = Instant.Config.pathname();
@@ -148,20 +143,14 @@ class DeployCommand extends Command {
     fs.writeFileSync(dbPathname, JSON.stringify(dbObj, null, 2));
 
     /**
-     * Framework-specific deploy commands
+     * Host-specific deploy commands
      */
-    if (framework === 'vercel') {
+    if (deployTarget === 'vercel') {
       console.log();
       if (env === 'production') {
         childProcess.spawnSync(`vercel --prod`, {stdio: 'inherit', shell: true});
       } else {
         childProcess.spawnSync(`vercel`, {stdio: 'inherit', shell: true});
-      }
-    } else if (framework === 'autocode') {
-      if (env === 'release') {
-        childProcess.spawnSync(`lib release`, {stdio: 'inherit', shell: true});
-      } else {
-        childProcess.spawnSync(`lib up ${env}`, {stdio: 'inherit', shell: true});
       }
     }
 

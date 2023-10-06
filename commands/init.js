@@ -32,6 +32,8 @@ const writeInitFiles = (pathname, pkg) => {
         depList.push(`${name}@${deps[name]}`);
       }
       if (depList.length) {
+        console.log();
+        console.log(colors.bold.black(`Installing:`) + ` "${depList.join('", "')}" ...`);
         const installString = `npm i ${depList.join(' ')} --save`;
         childProcess.execSync(installString, {stdio: 'inherit'});
         console.log();
@@ -91,7 +93,7 @@ class InitCommand extends Command {
     );
 
     const pkgExists = fs.existsSync('package.json');
-    let framework = fileWriter.determineFramework();
+    let createFromSrc = false;
 
     console.log();
     console.log(`🪄 You are about to initialize ${colors.bold('instant.dev')} in the current directory:`)
@@ -99,29 +101,48 @@ class InitCommand extends Command {
     console.log();
     if (!pkgExists) {
       console.log(`✨ We've detected you're starting from scratch`);
-    } else if (framework === 'default') {
-      console.log(`❓ We couldn't auto-detect a framework, but ${colors.bold('instant.dev')} will still work!`);
-      console.log(`   Some generation features (endpoints, kits) may be unavailable`);
-    } else {
-      console.log(`📦 We've detected you're using the supported framework "${colors.bold.green(framework)}"`);
-    }
-    console.log();
-    let verifyResult = await inquirer.prompt([
-      {
-        name: 'verify',
-        type: 'confirm',
-        message: `Continue with initialization?`,
-        default: true
+      console.log();
+      createFromSrc = true;
+      let verifyResult = await inquirer.prompt([
+        {
+          name: 'verify',
+          type: 'confirm',
+          message: `Continue with initialization?`,
+          default: true
+        }
+      ]);
+      if (!verifyResult.verify) {
+        throw new Error(`Initialization aborted`);
       }
-    ]);
-    if (!verifyResult.verify) {
-      throw new Error(`Initialization aborted`);
+    } else {
+      console.log(`📦 We've detected that you're adding to an existing project`);
+      console.log(`❓ Would you like to install Instant API or just Instant ORM and Migrations?`);
+      console.log();
+      let installResult = await inquirer.prompt([
+        {
+          name: 'install',
+          type: 'list',
+          message: `What would you like to install?`,
+          default: true,
+          choices: [
+            {
+              name: `Instant API and Instant ORM ${colors.green.dim('(recommended)')}`,
+              value: true
+            },
+            {
+              name: `Instant ORM and Migrations only`,
+              value: false
+            }
+          ]
+        }
+      ]);
+      createFromSrc = installResult.install;
     }
 
     let Instant = await loadInstant(params);
     if (!Instant) {
       console.log();
-      console.log(colors.bold.black(`Installing:`) + ` @instant.dev/orm (latest)...`);
+      console.log(colors.bold.black(`Installing:`) + ` "@instant.dev/orm@latest" ...`);
       if ('link' in params.vflags) {
         childProcess.execSync(`npm link @instant.dev/orm`, {stdio: 'inherit'});
       } else {
@@ -130,8 +151,6 @@ class InitCommand extends Command {
       if (!Instant) {
         Instant = await loadInstant(null, true);
       }
-    } else {
-      console.log();
     }
 
     Instant.enableLogs(2);
@@ -160,15 +179,12 @@ class InitCommand extends Command {
       throw new Error(`Invalid JSON in "package.json"`);
     }
 
-    if (!pkg.name) {
+    let name = pkg.name || process.cwd().split(path.sep).pop();
+
+    if (createFromSrc) {
       console.log();
-      console.log(`✨ Since you're starting from scratch, let's name your project and choose a framework.`);
+      console.log(`✨ Since you're starting a new installation, let's name your project.`);
       console.log();
-      const frameworkExists = {
-        'autocode': commandExists('lib'),
-        'vercel': commandExists('vercel')
-      };
-      let name = process.cwd().split(path.sep).pop();
       let result = await inquirer.prompt([
         {
           name: 'name',
@@ -182,109 +198,25 @@ class InitCommand extends Command {
             }
           },
           default: name.replace(/[^a-z0-9\-]+/gi, '-')
-        },
-        {
-          name: 'framework',
-          type: 'list',
-          message: `Select a framework / host to start with`,
-          default: `instant`,
-          choices: [
-            {
-              name: `Instant API ${colors.green.dim('(recommended)')}`,
-              value: `instant`
-            },
-            {
-              name: `Autocode${colors.dim(frameworkExists['autocode'] ? `` : ` (will install)`)}`,
-              value: `autocode`
-            },
-            {
-              name: `Vercel (Serverless Functions)${colors.dim(frameworkExists['vercel'] ? `` : ` (will install)`)}`,
-              value: `vercel`
-            }
-          ],
-          loop: false
         }
       ]);
-      framework = result.framework;
       name = result.name;
-      let username = '';
+    }
+    const filesRoot = path.join(__dirname, '..', 'src', 'init');
+    if (!fs.existsSync(filesRoot)) {
+      throw new Error(`No init template files found`);
+    }
+    writeInitFiles(filesRoot);
+    // Write package.json
+    fileWriter.writeJSON('package.json', 'name', name);
+    fileWriter.writeJSON('package.json', 'private', true);
+
+    if (createFromSrc) {
       console.log();
-      console.log(`Great! We'll start a new ${colors.bold('instant.dev')} project with "${colors.bold.green(framework)}".`);
-      console.log();
-      if (framework === 'autocode') {
-        if (!frameworkExists['autocode']) {
-          childProcess.execSync(`npm i -g lib.cli@latest`, {stdio: 'inherit'});
-        }
-        const getUser = async () => {
-          return new Promise((resolve, reject) => {
-            let p = childProcess.spawn(`lib`, [`user`]);
-            let buffers = [];
-            p.stdout.on('data', data => buffers.push(data));
-            p.on('close', async (code) => {
-              const stdout = Buffer.concat(buffers).toString();
-              resolve({code, stdout});
-            });
-          });
-        };
-        let userResult = await getUser();
-        if (userResult.code !== 0) {
-          console.log(`🔒 Log in to Autocode to continue`);
-          console.log(`👉 You can sign up at: ${colors.bold.blue(`https://autocode.com/signup/`)}`);
-          console.log();
-          const result = childProcess.spawnSync(`lib login`, {stdio: 'inherit', shell: true});
-          if (result.signal === 'SIGINT') {
-            console.log();
-            process.exit(2)
-          }
-          userResult = await getUser();
-        }
-        if (userResult.code !== 0) {
-          throw new Error(`Unable to log in to Autocode`);
-        }
-        username = userResult.stdout.replace(/^[\s\S]*?\s+username:\s+(.*?)\s+[\s\S]*?$/gi, '$1') || '';
-      } else if (framework === 'vercel') {
-        if (!frameworkExists['vercel']) {
-          childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
-        }
-        const result = childProcess.spawnSync(`vercel link`, {stdio: 'inherit', shell: true});
-        if (!fs.existsSync('.vercel')) {
-          throw new Error(`Framework initialization aborted`);
-        }
-        console.log();
-        if (result.signal === 'SIGINT') {
-          process.exit(2)
-        }
-      } else if (framework === 'instant') {
-        // do nothing
-      } else {
-        throw new Error(`Framework "${framework}" not yet supported`);
-      }
-      const srcRoot = path.join(__dirname, '..', 'src');
-      const frameworkFilesRoot = path.join(srcRoot, framework, 'init');
-      if (!fs.existsSync(frameworkFilesRoot)) {
-        throw new Error(`No init template files found for "${framework}"`);
-      }
-      writeInitFiles(frameworkFilesRoot);
-      // Write package.json
-      fileWriter.writeJSON('package.json', 'name', name);
-      fileWriter.writeJSON('package.json', 'private', true);
-      // Write the project name to stdlib.json if we're in Autocode
-      if (framework === 'autocode') {
-        fileWriter.writeJSON('stdlib.json', 'name', `${username}/${name}`);
-      }
-      console.log();
-      console.log(`Framework "${colors.bold.green(framework)}" project created successfully!`);
+      console.log(`Instant API project "${colors.bold.blue(name)}" initialized successfully!`);
     } else {
-      const srcRoot = path.join(__dirname, '..', 'src');
-      const frameworkFilesRoot = path.join(srcRoot, framework, 'init');
-      if (!fs.existsSync(frameworkFilesRoot)) {
-        throw new Error(`No init template files found for "${framework}"`);
-      }
-      writeInitFiles(frameworkFilesRoot);
-      // Write package.json
-      fileWriter.writeJSON('package.json', 'private', true);
       console.log();
-      console.log(`Framework "${colors.bold.green(framework)}" project initialized successfully!`);
+      console.log(`Instant ORM added to project "${colors.bold.blue(name)}" successfully!`);
     }
 
     await addDatabase(Instant, 'development', 'main');
@@ -297,18 +229,12 @@ class InitCommand extends Command {
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
 
-    // Write framework-specific directives
-    if (framework === 'autocode') {
-      fileWriter.writeJSON('env.json', 'local', {}, true);
-      fileWriter.writeLine('.gitignore', 'env.json');
-    }
-
     console.log();
     console.log(
       drawBox.left(
         `green`,
         ``,
-        colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized with framework "${colors.bold.green(framework)}"!`,
+        colors.bold.green(`Success:`) + ` ${colors.bold(`instant.dev`)} initialized!`,
         `Here are some helpful commands to get started:`,
         ``,
         `(1) Create a new model by generating a model file and migration:`,
@@ -319,7 +245,7 @@ class InitCommand extends Command {
         colors.grey.bold(`     $ instant g:relationship\n`),
         `(4) Create a custom migration:`,
         colors.grey.bold(`     $ instant g:migration\n`),
-        `(5) Run your dev server (runs framework-specific command):`,
+        `(5) Run your dev server:`,
         colors.grey.bold(`     $ instant serve`),
         ``,
         `For more information about ${colors.bold(`instant.dev`)}:`,

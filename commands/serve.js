@@ -16,7 +16,7 @@ class ServeCommand extends Command {
   help () {
     const environment = process.env.NODE_ENV || 'development';
     return {
-      description: 'Starts a development server: uses framework commands or your package.json["scripts"]["start"]',
+      description: 'Starts a development server using package.json["scripts"]["start"]',
       args: [],
       flags: {},
       vflags: {}
@@ -27,7 +27,6 @@ class ServeCommand extends Command {
 
     const Instant = await loadInstant(params, true);
     const environment = process.env.NODE_ENV || 'development';
-    const framework = fileWriter.determineFramework();
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -38,33 +37,24 @@ class ServeCommand extends Command {
     }
 
     console.log();
-    console.log(`Running development server for framework "${colors.bold.green(framework)}" ...`);
-
-    if (framework === 'autocode') {
-      console.log();
-      childProcess.spawnSync(`lib http`, {stdio: 'inherit', shell: true});
-    } else if (framework === 'vercel') {
-      console.log();
-      childProcess.spawnSync(`vercel dev`, {stdio: 'inherit', shell: true});
-    } else {
-      const pkgExists = fs.existsSync('package.json');
-      if (pkgExists) {
-        let pkg;
-        try {
-          pkg = JSON.parse(fs.readFileSync('package.json').toString());
-        } catch (e) {
-          throw new Error(`Could not read "package.json"`);
-        }
-        if (pkg?.scripts?.start) {
-          console.log(`Running script: ${colors.blue.bold(pkg.scripts.start)} ...`);
-          console.log();
-          childProcess.spawnSync(pkg.scripts.start, {stdio: 'inherit', shell: true});
-        } else {
-          throw new Error(`Could not find "package.json"["scripts"]["start"]`);
-        }
-      } else {
-        throw new Error(`No "package.json" in this directory`);
+    console.log(`Running "${colors.green.bold('instant.dev')}" development server ...`);
+    const pkgExists = fs.existsSync('package.json');
+    if (pkgExists) {
+      let pkg;
+      try {
+        pkg = JSON.parse(fs.readFileSync('package.json').toString());
+      } catch (e) {
+        throw new Error(`Could not read "package.json"`);
       }
+      if (pkg?.scripts?.start) {
+        console.log(`Running script: ${colors.blue.bold(pkg.scripts.start)} ...`);
+        console.log();
+        childProcess.spawnSync(pkg.scripts.start, {stdio: 'inherit', shell: true});
+      } else {
+        throw new Error(`Could not find "package.json"["scripts"]["start"]`);
+      }
+    } else {
+      throw new Error(`No "package.json" in this directory`);
     }
 
     return void 0;

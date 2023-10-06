@@ -4,13 +4,9 @@ const colors = require('colors/safe');
 
 module.exports = {
 
-  determineFramework () {
+  determineDeployTarget () {
     if (fs.existsSync('.vercel')) {
       return 'vercel';
-    } else if (fs.existsSync('stdlib.json')) {
-      return 'autocode';
-    } else if (fs.existsSync('instant.mjs')) {
-      return 'instant';
     } else {
       return 'default';
     }
@@ -33,7 +29,7 @@ module.exports = {
   },
 
   writeFile (filename, buffer, overwrite = true, validate = false) {
-    console.log(colors.bold.black(`FrameworkFileWriter:`) +  ` Writing file "${filename}" ...`);
+    console.log(colors.bold.black(`FileWriter:`) +  ` Writing file "${filename}" ...`);
     let paths = filename.split('/').slice(1, -1);
     for (let i = 1; i <= paths.length; i++) {
       let pathname = paths.slice(0, i).join('/');
@@ -46,7 +42,7 @@ module.exports = {
         if (validate) {
           throw new Error(`Could not write, file already exists: "${filename}"`);
         } else {
-          console.log(colors.bold.black(`FrameworkFileWriter:`) + colors.yellow(` Warn: Skipped "${filename}" (already exists)`));
+          console.log(colors.bold.black(`FileWriter:`) + colors.yellow(` Warn: Skipped "${filename}" (already exists)`));
           return false;
         }
       }
@@ -56,7 +52,7 @@ module.exports = {
   },
 
   writeLine (filename = '', line) {
-    console.log(colors.bold.black(`FrameworkFileWriter:`) + ` Writing line "${line}" to "${filename}"`);
+    console.log(colors.bold.black(`FileWriter:`) + ` Writing line "${line}" to "${filename}"`);
     const exists = fs.existsSync(filename);
     let fileString = '';
     if (exists) {
@@ -72,7 +68,7 @@ module.exports = {
   },
 
   writeJSON (filename, key, value, keepValueIfExists = false) {
-    console.log(colors.bold.black(`FrameworkFileWriter:`) + ` Writing [${key}=${JSON.stringify(value)}] to JSON file "${filename}"`);
+    console.log(colors.bold.black(`FileWriter:`) + ` Writing [${key}=${JSON.stringify(value)}] to JSON file "${filename}"`);
     const exists = fs.existsSync(filename);
     let json = {};
     if (exists) {

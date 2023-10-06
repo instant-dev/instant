@@ -247,13 +247,6 @@ module.exports = async (Instant, env, db) => {
     fileWriter.writeLine('.gitignore', envCfg.tunnel.private_key);
   }
 
-  // Write framework-specific directives
-  const framework = fileWriter.determineFramework();
-  if (framework === 'autocode') {
-    fileWriter.writeJSON('env.json', env, {}, true);
-    fileWriter.writeLine('.gitignore', 'env.json');
-  }
-
   console.log();
   console.log(colors.bold.green(`Success: `) + `Database for "${env}" added successfully to _instant/db.json["${env}"]["${db}"]!`);
   console.log();

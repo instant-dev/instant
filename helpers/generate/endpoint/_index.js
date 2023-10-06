@@ -9,11 +9,9 @@ const fileWriter = require('../../file_writer.js');
 
 module.exports = async (Instant, params) => {
 
-  const framework = fileWriter.determineFramework();
-
-  const pathname = path.join(__dirname, '..', '..', '..', 'src', framework, 'endpoint');
+  const pathname = path.join(__dirname, '..', '..', '..', 'src', 'endpoint');
   if (!fs.existsSync(pathname)) {
-    throw new Error(`No endpoint template found for framework "${colors.bold.green(framework)}"`);
+    throw new Error(`No endpoint template found.`);
   }
   const modelFor = ((params.vflags.for || [])[0] || '');
   if (!modelFor) {
@@ -32,7 +30,7 @@ module.exports = async (Instant, params) => {
   names.model_names = inflect.tableize(names.modelNames);
 
   console.log();
-  console.log(colors.bold.black(`Generating:`) + ` Endpoints for "${colors.bold.green(names.ModelName)}" for framework "${colors.bold.green(framework)}" ...`);
+  console.log(colors.bold.black(`Generating:`) + ` Endpoints for "${colors.bold.green(names.ModelName)}" ...`);
   console.log();
 
   const files = fileWriter.readRecursive(pathname);
@@ -56,7 +54,7 @@ module.exports = async (Instant, params) => {
   }
 
   console.log();
-  console.log(colors.bold.green(`Success!`) + ` Created endpoint for "${colors.bold.green(names.ModelName)}" for framework "${colors.bold.green(framework)}"!`);
+  console.log(colors.bold.green(`Success!`) + ` Created endpoint for "${colors.bold.green(names.ModelName)}"!`);
   console.log();
 
   return true;

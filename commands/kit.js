@@ -33,7 +33,6 @@ class KitCommand extends Command {
     }
     let kit = {
       name: (name || '').trim(),
-      framework: fileWriter.determineFramework(),
       migrations: [],
       models: {},
       files: {},
@@ -41,7 +40,6 @@ class KitCommand extends Command {
       environment: []
     };
     const kitListRoot = path.join(__dirname, '..', 'kits');
-    const srcRoot = path.join(__dirname, '..', 'src');
     const kits = fs.readdirSync(kitListRoot);
     if (!kit.name) {
       throw new Error(`Please provide a valid kit name.\nValid kits are: ${kits.join(', ')}`);
@@ -51,8 +49,8 @@ class KitCommand extends Command {
     const kitRoot = path.join(kitListRoot, kit.name);
     const migrationsRoot = path.join(kitRoot, 'migrations');
     const modelsRoot = path.join(kitRoot, 'models');
-    const pluginFilesRoot = path.join(kitRoot, 'plugins');
-    const frameworkFilesRoot = path.join(srcRoot, kit.framework, 'kits', kit.name);
+    const pluginsRoot = path.join(kitRoot, 'plugins');
+    const srcFilesRoot = path.join(kitRoot, 'src');
     const depsPath = path.join(kitRoot, 'dependencies.json');
     const envPath = path.join(kitRoot, 'environment.json');
     if (fs.existsSync(migrationsRoot)) {
@@ -78,37 +76,11 @@ class KitCommand extends Command {
         throw new Error(`Invalid models in "${modelsRoot}":\n${e.message}`);
       }
     }
-    if (fs.existsSync(pluginFilesRoot)) {
-      kit.files = fileWriter.readRecursive(pluginFilesRoot, {}, `/${instantDirectory}/plugins`);
+    if (fs.existsSync(pluginsRoot)) {
+      kit.files = fileWriter.readRecursive(pluginsRoot, {}, '/_instant/plugins');
     }
-    if (fs.existsSync(frameworkFilesRoot)) {
-      kit.files = fileWriter.readRecursive(frameworkFilesRoot, kit.files);
-    } else {
-      // Check to see if any other framework has files for this kit,
-      // if it does, this kit is missing files
-      const frameworks = fs.readdirSync(srcRoot);
-      const foundFiles = false;
-      for (const f of frameworks) {
-        const fpath = path.join(srcRoot, f, 'kits', kit.name);
-        if (fs.existsSync(fpath)) {
-          foundFiles = true;
-          break;
-        }
-      }
-      if (foundFiles) {
-        console.log();
-        console.log(colors.bold.yellow('Warning: ') + ` This kit is missing files for your framework "${colors.bold.green(kit.framework)}"`);
-        console.log(`You can still add the models and run migrations, but you'll need to create your own endpoints.`);
-        console.log();
-        let proceedResult = await inquirer.prompt([{
-          type: 'confirm',
-          name: 'proceed',
-          message: `Would you like to proceed anyway?`
-        }]);
-        if (!proceedResult.proceed) {
-          throw new Error(`kit installation aborted`);
-        }
-      }
+    if (fs.existsSync(srcFilesRoot)) {
+      kit.files = fileWriter.readRecursive(srcFilesRoot, kit.files);
     }
     if (fs.existsSync(depsPath)) {
       let deps = fs.readFileSync(depsPath);
@@ -148,8 +120,7 @@ class KitCommand extends Command {
 
     console.log();
     console.log(
-      colors.bold.black(`Installing: `) + `kit "${colors.bold.green(params.args[0] || '')}" ` +
-      `for framework "${colors.bold.green(fileWriter.determineFramework())}"...`
+      colors.bold.black(`Installing: `) + `kit "${colors.bold.green(params.args[0] || '')}" ...`
     );
 
     const kit = await this.validateKit(
@@ -256,7 +227,7 @@ class KitCommand extends Command {
     Instant.disconnect();
 
     console.log();
-    console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully for framework "${colors.bold.green(kit.framework)}"!`);
+    console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully!`);
     console.log();
 
     return void 0;

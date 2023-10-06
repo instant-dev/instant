@@ -663,7 +663,7 @@ run in the order provided by the Array.
 
 Five types of code generation are supported:
 
-- **Kits**: Generated from `src/[framework]/kits`, add in complete models,
+- **Kits**: Generated from `src/kits`, add in complete models,
   migrations and automatically adds dependencies
   - `instant kit [kitName]`
 - **Models**: Generates a new model and associated migration
@@ -673,7 +673,7 @@ Five types of code generation are supported:
 - **Relationships**: Generates a new migration that connect models in a
   one-to-one or many-to-many orientation
   - `instant g:relationship`
-- **Endpoints**: Generates CRUD endpoints for a model from `src/[framework]/endpoint`
+- **Endpoints**: Generates CRUD endpoints for a model from `src/endpoint`
   - `instant g:endpoint`
 
 ## Kits
