@@ -66,6 +66,16 @@ class DeployCommand extends Command {
       )
     }
 
+    if (!fs.existsSync('instant.mjs')) {
+      throw new Error(
+        `Can not deploy Instant API: Could not find "instant.mjs" in your root directory.\n` +
+        `\n` +
+        `If you're just using Instant ORM you should run:\n\n` + 
+        `    instant db:migrate --env ${env}\n\n` +
+        `and then use your manual deployment method.`
+      );
+    }
+
     /**
      * Host-specific deploy environment restrictions
      */
@@ -76,7 +86,8 @@ class DeployCommand extends Command {
     } else {
       throw new Error(
         `We can not determine your deployment target host.\n` +
-        `You should run \`instant db:migrate --env ${env}\`,\n` +
+        `You should run:\n\n` +
+        `    instant db:migrate --env ${env}\n\n` +
         `and then use your manual deployment method.`
       );
     }
