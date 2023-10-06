@@ -25,12 +25,12 @@ With `instant.dev` you can:
 - Add the [Instant ORM](https://github.com/instant-dev/orm) and migrations to
   your existing JavaScript or TypeScript project
 - Scaffold new Postgres-backed API projects from scratch using
-  [Instant API](https://github.com/instant-dev/api),
-  [Autocode](https://autocode.com) or [Vercel](https://vercel.com)
+  [Instant API](https://github.com/instant-dev/api)
 - Generate new migrations, models and endpoints
 - Migrate remote databases and deploy in a single step
 - Connect to any PostgreSQL host: AWS RDS, Railway, Vercel Postgres, Neon,
   Supabase
+- Instantly deploy to [Vercel](https://vercel.com)
 
 Are you interested in connecting? [Join us on Discord](https://discord.gg/puVYgA7ZMh) or follow us on
 X, [@instantdevs](https://x.com/instantdevs).
