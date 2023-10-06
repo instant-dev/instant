@@ -1,7 +1,6 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
-const commandExists = require('command-exists').sync;
 
 const fs = require('fs');
 const path = require('path');

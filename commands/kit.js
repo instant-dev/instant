@@ -207,22 +207,6 @@ class KitCommand extends Command {
       await Instant.Migrator.Dangerous.migrate();
     }
 
-    if (fs.existsSync('env.json')) {
-      let lines = Instant.readEnv(`.env.${Instant.Config.getProcessEnv()}`);
-      let envFile = fs.readFileSync('env.json').toString();
-      let json;
-      try {
-        json = JSON.parse(envFile);
-      } catch (e) {
-        json = {};
-      }
-      json['local'] = json['local'] || {};
-      for (const line of lines) {
-        json['local'][line.key] = line.value;
-      }
-      fs.writeFileSync('env.json', JSON.stringify(json, null, 2));
-    }
-
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
 
