@@ -127,7 +127,6 @@ class DeployCommand extends Command {
       deployTarget = configTarget;
     }
 
-
     const env = ((params.vflags.env || [])[0] || '').trim();
 
     if (!env) {
@@ -240,12 +239,13 @@ class DeployCommand extends Command {
         const imports = fs.readdirSync('.')
           .filter(filename => {
             return ![
+              '.deployconfig',
               '.gitignore',
-              'node_modules',
-              'vercel.json',
               '.vercel',
+              'node_modules',
               'package.json',
-              'package-lock.json'
+              'package-lock.json',
+              'vercel.json'
             ].includes(filename);
           })
           .map(filename => `path.join(process.cwd(), '${filename}');`);
@@ -258,14 +258,20 @@ class DeployCommand extends Command {
           Buffer.from(imports.join('\n'))
         ]);
         fs.writeFileSync(rootFile, tmpFile);
-        console.log();
-        if (env === 'production') {
-          childProcess.spawnSync(`vercel --prod`, {stdio: 'inherit', shell: true});
-        } else {
-          childProcess.spawnSync(`vercel`, {stdio: 'inherit', shell: true});
+        try {
+          console.log();
+          if (env === 'production') {
+            childProcess.spawnSync(`vercel --prod`, {stdio: 'inherit', shell: true});
+          } else {
+            childProcess.spawnSync(`vercel`, {stdio: 'inherit', shell: true});
+          }
+          // restore original file
+          fs.writeFileSync(rootFile, file);
+        } catch (e) {
+          // restore original file
+          fs.writeFileSync(rootFile, file);
+          throw e;
         }
-        // restore original file
-        fs.writeFileSync(rootFile, file);
       }
     } catch (e) {
       deployError = e;

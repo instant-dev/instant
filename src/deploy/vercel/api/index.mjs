@@ -8,13 +8,13 @@
 
 import InstantAPI from '@instant.dev/api';
 import dotenv from 'dotenv';
+const Daemon = InstantAPI.Daemon;
+const Gateway = InstantAPI.Daemon.Gateway;
 
 const ENVIRONMENT = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
 dotenv.config({path: `.env.${ENVIRONMENT}`});
 
-const gateway = new InstantAPI.Daemon.Gateway({
-  debug: ENVIRONMENT !== 'production'
-});
+const gateway = new Gateway({debug: ENVIRONMENT !== 'production'});
 gateway.load(process.cwd());
 
 export default function handler (req, res) {

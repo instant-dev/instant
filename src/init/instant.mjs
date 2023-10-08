@@ -3,15 +3,16 @@ import InstantORM from '@instant.dev/orm';
 import dotenv from 'dotenv';
 import cluster from 'cluster';
 import os from 'os';
+const Daemon = InstantAPI.Daemon;
+const Gateway = InstantAPI.Daemon.Gateway;
 
 const ENVIRONMENT = process.env.NODE_ENV || 'development';
 dotenv.config({path: `.env.${ENVIRONMENT}`});
-
 const PORT = process.env.PORT || 8000;
 
 if (cluster.isPrimary) {
 
-  const daemon = new InstantAPI.Daemon(
+  const daemon = new Daemon(
     ENVIRONMENT !== 'development'
       ? os.cpus().length
       : 1
@@ -20,10 +21,8 @@ if (cluster.isPrimary) {
 
 } else {
 
+  const gateway = new Gateway({debug: ENVIRONMENT !== 'production'});
   await InstantORM.connectToPool();
-  const gateway = new InstantAPI.Daemon.Gateway({
-    debug: ENVIRONMENT !== 'production'
-  });
   gateway.load(process.cwd());
   gateway.listen(PORT);
 
