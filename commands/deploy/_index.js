@@ -22,6 +22,9 @@ class DeployCommand extends Command {
       flags: {},
       vflags: {
         env: `Environment to deploy to`,
+        'allow-unclean': `Allow a deployment with an unclean git working directory`,
+        'force-mismatch': `Force a deployment to an environment if the git branch doesn\'t match`,
+        'force-production': `Force a deployment to production without being on main branch`
       }
     };
   }
@@ -49,6 +52,9 @@ class DeployCommand extends Command {
     }
 
     const env = ((params.vflags.env || [])[0] || '').trim();
+    const allowUnclean = !!params.vflags['allow-unclean'];
+    const forceMismatch = !!params.vflags['force-mismatch'];
+    const forceProduction = !!params.vflags['force-production'];
 
     if (!env) {
       throw new Error(
@@ -62,6 +68,12 @@ class DeployCommand extends Command {
       throw new Error(
         `Can not deploy to "local": "development" is the local environment, and can not be deployed to`
       )
+    }
+
+    if (forceMismatch && env === 'production') {
+      throw new Error(`Can only use \`--force-mismatch\` when \`--env [environment]\` is not production`);
+    } else if (forceProduction && env !== 'production') {
+      throw new Error(`Can only use \`--force-production\` with \`--env production\``);
     }
 
     let configTarget = Instant.readEnvKey(`.deployconfig.${env}`, 'TARGET');
@@ -82,6 +94,49 @@ class DeployCommand extends Command {
     }
 
     const cfg = Instant.Config.read(env, 'main');
+
+    /**
+     * Check git status
+     */
+    
+    if (commandExists('git')) {
+      if (!allowUnclean) {
+        let gitStatusResult = childProcess.spawnSync(
+          'git',
+          ['status', '--porcelain'],
+          {cwd: process.cwd()}
+        );
+        let gitDirty = gitStatusResult.stdout.toString();
+        if (gitDirty.length > 0) {
+          throw new Error(
+            `You must have a clean git working directory to deploy.\n` +
+            `The following files have not been committed:\n\n` +
+            gitDirty + `\n` +
+            `To force an unclean deployment, use \`instant deploy --env ${env} --allow-unclean\``
+          )
+        }
+      }
+      let gitBranchResult = childProcess.spawnSync(
+        'git',
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+        {cwd: process.cwd()}
+      );
+      let gitBranch = gitBranchResult.stdout.toString().trim();
+      if (!forceMismatch && env !== 'production' && gitBranch !== env) {
+        throw new Error(
+          `You must be on the "${env}" branch to deploy to a "${env}" environment.\n` +
+          `You should switch branches with \`git checkout ${env}\`.\n\n` +
+          `To force a "${env}" deployment, use \`instant deploy --env ${env}${allowUnclean ? ` --allow-unclean` : ``} --force-mismatch\``
+        );
+      }
+      if (!forceProduction && env === 'production' && (gitBranch !== 'main' && gitBranch !== 'master')) {
+        throw new Error(
+          `You must be on the "main" or "master" branches to deploy to a "production" environment.\n` +
+          `You should switch branches with \`git checkout main\`.\n\n` +
+          `To force a "production" deployment, use \`instant deploy --env ${env}${allowUnclean ? ` --allow-unclean` : ``} --force-production\``
+        );
+      }
+    }
 
     console.log();
     console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(configTarget)}" to environment "${colors.bold.green(env)}"...`);
