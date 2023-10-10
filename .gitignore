@@ -1,4 +1,5 @@
 .DS_Store
+package-lock.json
 node_modules/
 /_instant/
 /_instant/db.json

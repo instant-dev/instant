@@ -241,6 +241,11 @@ module.exports = async (Instant, env, db) => {
   }
 
   Instant.Config.write(env, db, envCfg);
+  if (env === 'development') {
+    Instant.writeEnv(`.env`, 'NODE_ENV', 'development');
+  } else {
+    Instant.writeEnv(`.env.${env}`, 'NODE_ENV', env);
+  }
 
   // ignore the private key file if it was added
   if (envCfg?.tunnel?.private_key) {

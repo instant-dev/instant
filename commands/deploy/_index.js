@@ -1,15 +1,13 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
-const inquirer = require('inquirer');
 const commandExists = require('command-exists').sync;
 
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
 
-const loadInstant = require('../helpers/load_instant.js');
-const checkMigrationState = require('../helpers/check_migration_state.js');
-const fileWriter = require('../helpers/file_writer.js');
+const loadInstant = require('../../helpers/load_instant.js');
+const checkMigrationState = require('../../helpers/check_migration_state.js');
 
 class DeployCommand extends Command {
 
@@ -28,21 +26,9 @@ class DeployCommand extends Command {
     };
   }
 
-  printRecommendedEnvironments (deployTarget) {
-    if (deployTarget === 'vercel') {
-      return `Available environments for "vercel" are:\n` +
-        `preview, production`;
-    } else {
-      return `Recommended environments are:\n` +
-        `staging, production`;
-    }
-  }
-
   async run (params) {
 
     const Instant = await loadInstant(params, true);
-    const environment = process.env.NODE_ENV || 'development';
-    let deployTarget = fileWriter.determineDeployTarget();
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -62,77 +48,11 @@ class DeployCommand extends Command {
       );
     }
 
-    let configTarget = Instant.readEnvKey('.deployconfig', 'TARGET');
-    if (!configTarget) {
-      console.log();
-      console.log(`👀 We can see you haven't deployed before!`);
-      if (deployTarget !== 'default') {
-        configTarget = deployTarget;
-        console.log(`✨ We've automatically determined you should be deploying to "${colors.bold.green(deployTarget)}" ...`);
-        console.log();
-      } else {
-        console.log(`❓ Please pick a deployment target`);
-        console.log();
-        let deployQuery = await inquirer.prompt([
-          {
-            name: 'target',
-            type: 'list',
-            message: `Where would you like to host your project?`,
-            default: true,
-            choices: [
-              {
-                name: `Vercel`,
-                value: `vercel`
-              }
-            ]
-          }
-        ]);
-        configTarget = deployQuery.target;
-      }
-      if (configTarget === 'vercel') {
-        if (!commandExists('vercel')) {
-          childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
-        }
-        if (deployTarget !== 'vercel') {
-          const result = childProcess.spawnSync(`vercel link`, {stdio: 'inherit', shell: true});
-          if (!fs.existsSync('.vercel')) {
-            throw new Error(`Framework initialization aborted`);
-          }
-          console.log();
-          if (result.signal === 'SIGINT') {
-            process.exit(2)
-          }
-        }
-      } else {
-        throw new Error(`Unsupported deploy target: "${configTarget}`);
-      }
-      deployTarget = configTarget;
-      const srcRoot = path.join(__dirname, '..', 'src');
-      const deployFilesRoot = path.join(srcRoot, 'deploy', deployTarget);
-      if (fs.existsSync(deployFilesRoot)) {
-        const files = fileWriter.readRecursive(deployFilesRoot);
-        for (const filename in files) {
-          fileWriter.writeFile(filename, files[filename], false);
-        }
-      }
-      Instant.writeEnv('.deployconfig', 'TARGET', deployTarget);
-    } else if (deployTarget !== 'default' && deployTarget !== configTarget) {
-      throw new Error(
-        `The configured deploy target in .deployconfig is "${configTarget}",\n` +
-        `but we have determined your project should be deployed to "${deployTarget}".\n` +
-        `Aborting deployment due to ambiguity.\n\n` + 
-        `To fix this issue, run \`rm .deployconfig\` and \`instant deploy\` again`
-      );
-    } else {
-      deployTarget = configTarget;
-    }
-
     const env = ((params.vflags.env || [])[0] || '').trim();
 
     if (!env) {
       throw new Error(
-        `Must specify environment with --env [environment].\n` +
-        this.printRecommendedEnvironments(deployTarget)
+        `Must specify environment with --env [environment].`
       );
     } else if (env === 'development') {
       throw new Error(
@@ -144,26 +64,27 @@ class DeployCommand extends Command {
       )
     }
 
+    let configTarget = Instant.readEnvKey(`.deployconfig.${env}`, 'TARGET');
+    if (!configTarget) {
+      throw new Error(
+        `Deployment configuration for "${env}" not found in ".deployconfig.${env}",\n` +
+        `Run \`instant deploy:config\` to configure your deployment settings`
+      );
+    }
+
     /**
      * Host-specific deploy environment restrictions
      */
-    if (deployTarget === 'vercel') {
+    if (configTarget === 'vercel') {
       if (env !== 'preview' && env !== 'production') {
         throw new Error(`Only valid environments for deployment target "vercel" are: preview, production`);
       }
-    } else {
-      throw new Error(
-        `We can not determine your deployment target host.\n` +
-        `You should run:\n\n` +
-        `    instant db:migrate --env ${env}\n\n` +
-        `and then use your manual deployment method.`
-      );
     }
 
     const cfg = Instant.Config.read(env, 'main');
 
     console.log();
-    console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(deployTarget)}" to environment "${colors.bold.green(env)}"...`);
+    console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(configTarget)}" to environment "${colors.bold.green(env)}"...`);
     console.log();
 
     Instant.enableLogs(2);
@@ -212,7 +133,8 @@ class DeployCommand extends Command {
     Instant.Migrator.disableDangerous();
     Instant.disconnect();
     console.log();
-    console.log(colors.bold(`Deploying:`) + ` Running "${colors.bold.green(deployTarget)}" deploy script for "${colors.bold.green(env)}"...`);
+    console.log(colors.bold(`Deploying:`) + ` Running deploy script for "${colors.bold.green(env)}" to "${colors.bold.green(configTarget)}" ...`);
+    console.log();
 
     // Only deploy environment-specific database info
     const dbPathname = Instant.Config.pathname();
@@ -227,7 +149,43 @@ class DeployCommand extends Command {
       /**
        * Host-specific deploy commands
        */
-      if (deployTarget === 'vercel') {
+      if (configTarget === 'aws') {
+        if (!fs.existsSync(path.join(process.cwd(), 'node_modules', '@instant.dev/deploy'))) {
+          console.log(colors.bold('Installing: ') + `Instant DeploymentManager (@instant.dev/deploy) ...`);
+          console.log();
+          childProcess.execSync(`npm i @instant.dev/deploy@latest --save-dev`, {stdio: 'inherit'});
+        }
+        const { DeploymentManager } = require(path.join(process.cwd(), 'node_modules', '@instant.dev/deploy'));
+        const InstantAPI = require(path.join(process.cwd(), 'node_modules', '@instant.dev/api'));
+        const EncryptionTools = InstantAPI.EncryptionTools;
+        const dm = new DeploymentManager(`.deployconfig.${env}`);
+        const et = new EncryptionTools();
+        const encryptResult = et.encryptEnvFileFromPackage(
+          dm.readPackageFiles(process.cwd()),
+          `.env.${env}`,
+          `.env`,
+          /^\.env\..*$/
+        );
+        let deployResult = await dm.deployToElasticBeanstalk(
+          encryptResult.files,
+          env,
+          encryptResult.env,
+          (...messages) => {
+            console.log(colors.bold(`DeploymentManager:`), ...messages);
+          }
+        );
+        console.log();
+        console.log(`✅ Success! Deployed environment "${colors.bold.green(env)}" successfully to "${colors.bold.green(configTarget)}"!`);
+        console.log();
+        console.log(`Dashboard URL   => ${colors.bold.underline.blue(deployResult.dashboard_url)}`);
+        console.log(`Application URL => ${colors.bold.underline.blue(deployResult.app_url)}`);
+        console.log();
+      } else if (configTarget === 'vercel') {
+        if (!commandExists('vercel')) {
+          console.log(colors.bold('Installing: ') + `Vercel command line tools ...`);
+          console.log();
+          childProcess.execSync(`npm i -g vercel@latest`, {stdio: 'inherit'});
+        }
         // Vercel does some tree-shaking / pruning on files
         // So we need to import the important files to include them
         const rootFile = `./api/index.mjs`;
@@ -237,9 +195,10 @@ class DeployCommand extends Command {
         const file = fs.readFileSync(rootFile);
         const fileString = file.toString();
         const imports = fs.readdirSync('.')
+          .filter(filename => !filename.startsWith('.deployconfig'))
+          .filter(filename => !filename.startsWith(`.env`) || filename === `.env.${env}`)
           .filter(filename => {
             return ![
-              '.deployconfig',
               '.gitignore',
               '.vercel',
               'node_modules',
