@@ -58,11 +58,11 @@ class AccessToken extends InstantORM.Core.Model {
       })
       .select();
     if (!accessTokens.length) {
-      throw new Error('Access token key is invalid');
+      throw new Error('404: Access token key is invalid');
     }
     let accessToken = accessTokens[0];
     if (!accessToken.joined('user')) {
-      throw new Error('Access token key belongs to an invalid user');
+      throw new Error('403: Access token key belongs to an invalid user');
     }
     return accessToken;
   }

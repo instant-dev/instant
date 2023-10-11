@@ -55,15 +55,15 @@ class User extends InstantORM.Core.Model {
   static async signup (body) {
     const User = this.getModel('User');
     if (!body || typeof body !== 'object') {
-      throw new Error(`Invalid signup body`);
+      throw new Error(`400: Invalid signup body`);
     }
     ['email', 'password', 'repeat_password'].forEach(key => {
       if (typeof body[key] !== 'string') {
-        throw new Error(`Invalid "${key}"`);
+        throw new Error(`400: Invalid "${key}"`);
       }
     });
     if (body.password !== body.repeat_password) {
-      throw new Error(`Passwords do not match`);
+      throw new Error(`400: Passwords do not match`);
     }
     let user = new User({email: body.email, password: body.password});
     try {
@@ -74,7 +74,7 @@ class User extends InstantORM.Core.Model {
         e.details._query[0] &&
         e.details._query[0].includes('unique constraint \"users_email_unique\"')
       ) {
-        throw new Error(`User with email "${body.email}" already exists`);
+        throw new Error(`400: User with email "${body.email}" already exists`);
       } else {
         throw e;
       }
@@ -91,16 +91,16 @@ class User extends InstantORM.Core.Model {
   static async login (body, ipAddress = null, userAgent = null) {
     const AccessToken = this.getModel('AccessToken');
     if (body.grant_type !== 'password') {
-      throw new Error('Must supply grant_type = "password"');
+      throw new Error('400: Must supply grant_type = "password"');
     }
     let users = await this.query().where({email: body.username}).select();
     if (!users.length) {
-      throw new Error('Invalid credentials');
+      throw new Error('401: Invalid credentials');
     }
     let user = users[0];
     let result = await user.verifyPassword(body.password);
     if (!result) {
-      throw new Error('Invalid credentials');
+      throw new Error('401: Invalid credentials');
     }
     let attempts = MAX_COLLISION_RETRIES + 1;
     while (attempts > 0) {
@@ -127,7 +127,7 @@ class User extends InstantORM.Core.Model {
       user.setJoined('accessTokens', [accessToken]);
       return user;
     }
-    throw new Error(`Error authenticating, please try again`);
+    throw new Error(`401: Error authenticating, please try again`);
   }
 
   /**
@@ -136,13 +136,13 @@ class User extends InstantORM.Core.Model {
    */
   static async parseAuthenticationKey (headers) {
     if (!headers['authorization']) {
-      throw new Error(`Could not authenticate, missing "Authorization" header`);
+      throw new Error(`401: Could not authenticate, missing "Authorization" header`);
     } else if (!headers['authorization'].startsWith('Bearer ')) {
-      throw new Error(`Could not authenticate, "Authorization" must start with "Bearer "`);
+      throw new Error(`401: Could not authenticate, "Authorization" must start with "Bearer "`);
     }
     let key = headers['authorization'].slice('Bearer '.length);
     if (!key) {
-      throw new Error(`Could not authenticate, no key provided`);
+      throw new Error(`401: Could not authenticate, no key provided`);
     }
     return key;
   }
