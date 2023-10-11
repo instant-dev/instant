@@ -17,6 +17,8 @@ module.exports = async (params = null, validate = false) => {
     console.log(colors.bold.red(`Missing PostgreSQL installation`));
     console.log();
     console.log(`In order to use ${colors.bold('instant.dev')}, you must have PostgreSQL installed locally.`);
+    console.log(`This is verified by the existence of the \`psql\` command, which this CLI relies on.`);
+    console.log(`For this reason, a Docker container will not work, you must install Postgres directly.`);
     console.log();
     console.log(`If you are using macOS, the easiest way to get started is ${colors.bold('Postgres.app')}:`);
     console.log(` => ${colors.bold.underline.blue('https://postgresapp.com')}`);
