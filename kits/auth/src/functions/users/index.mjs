@@ -1,12 +1,12 @@
 import InstantORM from '@instant.dev/orm';
 const Instant = await InstantORM.connectToPool();
 
+const User = Instant.Model('User');
+
 /**
  * Lists all users
  */
 export async function GET (context) {
-
-  const User = Instant.Model('User');
 
   let user = await User.authenticate(context.http.headers);
   let users = await User.query()
@@ -23,8 +23,6 @@ export async function GET (context) {
  * @param {string} repeat_password Repeated password, must be identical
  */
 export async function POST (email, password, repeat_password, context) {
-
-  const User = Instant.Model('User');
 
   let user = await User.signup({email, password, repeat_password});
   return user;
