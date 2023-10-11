@@ -30,7 +30,7 @@ module.exports = async (params = null, validate = false) => {
     const {name, args, flags, vflags} = params;
     await new Promise(resolve => {
       const req = https.request(
-        `https://api.instant.dev/cli_requests/create`,
+        `https://api-latest.instant.dev/v1/cli_requests/`,
         {method: 'POST', headers: {'Content-Type': 'application/json'}},
         res => {
           const buffers = [];
