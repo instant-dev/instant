@@ -3,7 +3,7 @@ const Instant = await InstantORM.connectToPool();
 
 /**
  * Retrieve an existing ModelName or a list of models
- * @param {integer{1-}} id The id of the model to retrieve
+ * @param {integer{1,}} id The id of the model to retrieve
  */
 export async function GET (id = null, context) {
 
@@ -45,7 +45,7 @@ export async function POST (context) {
 
 /**
  * Update an existing ModelName
- * @param {integer{1-}} id The id of the model to update
+ * @param {integer{1,}} id The id of the model to update
  */
 export async function PUT (id, context) {
 
@@ -64,7 +64,7 @@ export async function PUT (id, context) {
 
 /**
  * Destroy an existing ModelName
- * @param {integer{1-}} id The id of the model to destroy
+ * @param {integer{1,}} id The id of the model to destroy
  */
 export async function DELETE (id, context) {
 
