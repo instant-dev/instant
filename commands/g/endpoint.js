@@ -12,11 +12,12 @@ class GenerateEndpointCommand extends Command {
 
   help () {
     return {
-      description: 'Generates a new set of endpoints for a model',
-      args: [],
+      description: 'Generates a new set of endpoints for a model, can provide a namespace to put inside a directory',
+      args: ['namespace'],
       flags: {},
       vflags: {
-        'for': 'The model which you are generating the endpoint for'
+        'for': 'Model which you are generating the endpoint for',
+        'blank': 'Create a blank endpoint'
       }
     };
   }

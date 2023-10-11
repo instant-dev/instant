@@ -3,20 +3,27 @@ const Instant = await InstantORM.connectToPool();
 
 /**
  * Retrieve an existing ModelName or a list of models
- * @param {integer} id The id of the model to update
+ * @param {integer{1-}} id The id of the model to retrieve
  */
 export async function GET (id = null, context) {
 
   const ModelName = Instant.Model('ModelName');
 
   if (id === null) {
+
+    const params = {...context.params};
+    delete params.id;
+
     let modelNames = await ModelName.query()
-    .where(context.params)
-    .select();
+      .where(params)
+      .select();
     return modelNames;
+
   } else {
+
     let modelName = await ModelName.find(id);
     return modelName;
+
   }
 
 };
@@ -28,22 +35,27 @@ export async function POST (context) {
 
   const ModelName = Instant.Model('ModelName');
 
-  let modelName = new ModelName(context.params);
-  await modelName.save();
+  const params = {...context.params};
+  delete params.id;
+
+  let modelName = await ModelName.create(params);
   return modelName;
 
 }
 
 /**
  * Update an existing ModelName
- * @param {integer} id The id of the model to update
+ * @param {integer{1-}} id The id of the model to update
  */
 export async function PUT (id, context) {
 
   const ModelName = Instant.Model('ModelName');
 
+  const params = {...context.params};
+  delete params.id;
+
   let modelName = await ModelName.find(id);
-  modelName.read(context.params);
+  modelName.read(params);
   await modelName.save();
   return modelName;
 
@@ -52,7 +64,7 @@ export async function PUT (id, context) {
 
 /**
  * Destroy an existing ModelName
- * @param {integer} id The id of the model to update
+ * @param {integer{1-}} id The id of the model to destroy
  */
 export async function DELETE (id, context) {
 
