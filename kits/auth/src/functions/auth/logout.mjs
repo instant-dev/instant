@@ -5,6 +5,7 @@ const User = Instant.Model('User');
 
 /**
  * Logs a user out
+ * @returns {object} accessToken
  */
 export async function POST (context) {
 

@@ -6,6 +6,7 @@ const ModelName = Instant.Model('ModelName');
 /**
  * Retrieve an existing ModelName or a list of models
  * @param {integer{1,}} id The id of the model to retrieve
+ * @returns {object} modelNameOrQueryResponse
  */
 export async function GET (id = null, context) {
 
@@ -17,7 +18,7 @@ export async function GET (id = null, context) {
     let modelNames = await ModelName.query()
       .where(params)
       .select();
-    return modelNames;
+    return modelNames.toQueryJSON();
 
   } else {
 
@@ -30,6 +31,7 @@ export async function GET (id = null, context) {
 
 /**
  * Create a new ModelName
+ * @returns {object} modelName
  */
 export async function POST (context) {
 
@@ -44,15 +46,14 @@ export async function POST (context) {
 /**
  * Update an existing ModelName
  * @param {integer{1,}} id The id of the model to update
+ * @returns {object} modelName
  */
 export async function PUT (id, context) {
 
   const params = {...context.params};
   delete params.id;
 
-  let modelName = await ModelName.find(id);
-  modelName.read(params);
-  await modelName.save();
+  let modelName = await ModelName.update(id, params);
   return modelName;
 
 };
@@ -61,11 +62,11 @@ export async function PUT (id, context) {
 /**
  * Destroy an existing ModelName
  * @param {integer{1,}} id The id of the model to destroy
+ * @returns {object} modelName
  */
 export async function DELETE (id, context) {
 
-  let modelName = await ModelName.find(id);
-  await modelName.destroy();
+  let modelName = await ModelName.destroy(id);
   return modelName;
 
 };

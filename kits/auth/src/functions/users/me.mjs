@@ -5,6 +5,7 @@ const User = Instant.Model('User');
 
 /**
  * Retrieves logged in user information
+ * @returns {object} user
  */
 export async function GET (context) {
 

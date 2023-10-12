@@ -1,6 +1,6 @@
 {
   "name": "instant.dev",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Instant.dev Command Line Interface",
   "main": "index.js",
   "files": [
