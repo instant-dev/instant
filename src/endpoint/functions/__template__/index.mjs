@@ -6,8 +6,9 @@ const ModelName = Instant.Model('ModelName');
 /**
  * Retrieves a list of ModelNames matching provided parameters
  * For example, {id: 1} will retrieve only ModelName(id=1),
- * or {title__icontains: "hello"} will retrieve all ModelNames with name containing "hello".
- * Fields hidden via ModelName.hides('field') will not be queried.
+ * or {title__icontains: "hello"} will retrieve all ModelNames with name containing "hello"
+ * @param {integer{1,100}} __count Number of records to return
+ * @param {integer{0,}} __offset Record offset
  * @returns {object}   response
  * @returns {object}   response.meta
  * @returns {integer}  response.meta.total
@@ -15,12 +16,14 @@ const ModelName = Instant.Model('ModelName');
  * @returns {integer}  response.meta.offset
  * @returns {object[]} response.data
  */
-export async function GET (context) {
+export async function GET (__count = 20, __offset = 0, context) {
 
+  // contains __count, __offset and any other params
   const params = {...context.params};
+
   let modelNames = await ModelName.query()
-    .safeWhere(params)
-    .select();
+    .safeWhere(params) // safeWhere: fields hidden #hides('field') will not be queried
+    .select();         // __count and __offset handled automatically
   return modelNames.toQueryJSON();
 
 };
