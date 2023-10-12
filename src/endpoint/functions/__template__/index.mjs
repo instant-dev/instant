@@ -4,28 +4,24 @@ const Instant = await InstantORM.connectToPool();
 const ModelName = Instant.Model('ModelName');
 
 /**
- * Retrieve an existing ModelName or a list of models
- * @param {integer{1,}} id The id of the model to retrieve
- * @returns {object} modelNameOrQueryResponse
+ * Retrieves a list of ModelNames matching provided parameters
+ * For example, {id: 1} will retrieve only ModelName(id=1),
+ * or {title__icontains: "hello"} will retrieve all ModelNames with name containing "hello".
+ * Fields hidden via ModelName.hides('field') will not be queried.
+ * @returns {object} response
+ * @returns {object} response.meta
+ * @returns {integer} response.meta.total
+ * @returns {integer} response.meta.count
+ * @returns {integer} response.meta.offset
+ * @returns {object[]} response.data
  */
-export async function GET (id = null, context) {
+export async function GET (context) {
 
-  if (id === null) {
-
-    const params = {...context.params};
-    delete params.id;
-
-    let modelNames = await ModelName.query()
-      .where(params)
-      .select();
-    return modelNames.toQueryJSON();
-
-  } else {
-
-    let modelName = await ModelName.find(id);
-    return modelName;
-
-  }
+  const params = {...context.params};
+  let modelNames = await ModelName.query()
+    .safeWhere(params)
+    .select();
+  return modelNames.toQueryJSON();
 
 };
 
