@@ -8,11 +8,11 @@ const ModelName = Instant.Model('ModelName');
  * For example, {id: 1} will retrieve only ModelName(id=1),
  * or {title__icontains: "hello"} will retrieve all ModelNames with name containing "hello".
  * Fields hidden via ModelName.hides('field') will not be queried.
- * @returns {object} response
- * @returns {object} response.meta
- * @returns {integer} response.meta.total
- * @returns {integer} response.meta.count
- * @returns {integer} response.meta.offset
+ * @returns {object}   response
+ * @returns {object}   response.meta
+ * @returns {integer}  response.meta.total
+ * @returns {integer}  response.meta.count
+ * @returns {integer}  response.meta.offset
  * @returns {object[]} response.data
  */
 export async function GET (context) {
