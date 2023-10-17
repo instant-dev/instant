@@ -30,6 +30,8 @@ if (cluster.isPrimary) {
 
   // Individual webserver startup
   const gateway = new Gateway({debug: ENVIRONMENT !== 'production'});
+  // Optional: Enable Sentry or another error reporting tool
+  // gateway.setErrorHandler(err => Sentry.captureException(err));
   const et = new EncryptionTools();
   dotenv.config();                   // load env vars
   et.decryptProcessEnv(process.env); // decrypt env vars, if necessary
