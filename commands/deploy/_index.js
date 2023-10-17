@@ -93,7 +93,8 @@ class DeployCommand extends Command {
       }
     }
 
-    const cfg = Instant.Config.read(env, 'main');
+    const envFile = env === 'development' ? `.env` : `.env.${env}`;
+    const cfg = Instant.Config.read(env, 'main', Instant.readEnvObject(envFile));
 
     /**
      * Check git status

@@ -39,7 +39,8 @@ class SqlCommand extends Command {
 
     const env = (params.vflags.env || [])[0] || environment;
     const db = params.vflags.db || 'main';
-    let cfg = Instant.Config.read(env, db);
+    const envFile = env === 'development' ? `.env` : `.env.${env}`;
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
 
     console.log();
     console.log(`Connecting to SQL environment "${colors.bold.green(env)}" using credentials _instant/db.json["${env}"]["${db}"] ...`);

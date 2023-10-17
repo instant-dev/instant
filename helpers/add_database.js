@@ -240,12 +240,26 @@ module.exports = async (Instant, env, db) => {
     }
   }
 
-  Instant.Config.write(env, db, envCfg);
-  if (env === 'development') {
-    Instant.writeEnv(`.env`, 'NODE_ENV', 'development');
-  } else {
-    Instant.writeEnv(`.env.${env}`, 'NODE_ENV', env);
+  const envFile = env === `development` ? `.env` : `.env.${env}`;
+
+  Instant.writeEnv(envFile, 'NODE_ENV', env);
+  for (const key in envCfg) {
+    if (['connectionString', 'host', 'user', 'port', 'password', 'database'].includes(key)) {
+      const envVar = `${db}_database_${key}`.toUpperCase();
+      Instant.writeEnv(envFile, envVar, envCfg[key]);
+      envCfg[key] = `{{ ${envVar} }}`;
+    } else if (key === 'tunnel') {
+      const tunnel = envCfg[key];
+      for (const tkey in tunnel) {
+        if (['host', 'user', 'port'].includes(tkey)) {
+          const envVar = `${db}_database_tunnel_${tkey}`.toUpperCase();
+          Instant.writeEnv(envFile, envVar, tunnel[tkey]);
+          tunnel[tkey] = `{{ ${envVar} }}`;
+        }
+      }
+    }
   }
+  Instant.Config.write(env, db, envCfg);
 
   // ignore the private key file if it was added
   if (envCfg?.tunnel?.private_key) {

@@ -22,7 +22,7 @@ export async function GET (__count = 20, __offset = 0, context) {
   const params = {...context.params};
 
   let modelNames = await ModelName.query()
-    .safeWhere(params) // safeWhere: fields hidden #hides('field') will not be queried
+    .safeWhere(params) // safeWhere: fields hidden via #hides('field') will not be queried
     .select();         // __count and __offset handled automatically
   return modelNames.toQueryJSON();
 

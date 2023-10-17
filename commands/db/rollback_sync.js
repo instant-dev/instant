@@ -36,7 +36,8 @@ class DbRollbackSyncCommand extends Command {
 
     let env = params.vflags.env || environment;
     let db = 'main';
-    let cfg = Instant.Config.read(env, db);
+    const envFile = env === 'development' ? `.env` : `.env.${env}`;
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
 
     console.log();
     Instant.enableLogs(2);
