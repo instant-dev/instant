@@ -129,8 +129,12 @@ class KitCommand extends Command {
     );
     console.log();
 
+    const env = `development`;
+    const db = `main`;
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(`.env`));
+
     Instant.enableLogs(2);
-    await Instant.connect();
+    await Instant.connect(cfg);
     Instant.Migrator.enableDangerous();
     let canMigrate = await checkMigrationState(Instant);
     if (!canMigrate) {
