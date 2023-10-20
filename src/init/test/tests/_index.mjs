@@ -6,7 +6,6 @@ export const name = `Main Tests`;
 
 /**
  * Main Tests
- * You can pass in as many arguments as you would like in `test/run.mjs`
  * @param {any} setupResult Result of the function passed to `.setup()` in `test/run.mjs`
  */
 export default async function (setupResult) {

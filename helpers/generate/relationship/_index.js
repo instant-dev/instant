@@ -2,7 +2,6 @@ const colors = require('colors/safe');
 const inquirer = require('inquirer');
 const inflect = require('i')();
 
-const argTypeInputs = require('../arg_type_inputs.js');
 const checkMigrationState = require('../../check_migration_state.js');
 
 module.exports = async (Instant, params) => {

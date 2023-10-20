@@ -40,9 +40,14 @@ class GenerateEndpointCommand extends Command {
     }
 
     console.log();
+
+    const env = environment;
+    const db = 'main';
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(`.env`));
+
     Instant.enableLogs(2);
     // Do not load a schema
-    await Instant.connect(null, null);
+    await Instant.connect(cfg, null);
 
     let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
     if (!hasMigrationsEnabled) {

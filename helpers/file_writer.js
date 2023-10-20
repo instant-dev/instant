@@ -29,6 +29,12 @@ module.exports = {
   },
 
   writeFile (filename, buffer, overwrite = true, validate = false) {
+    if (filename.startsWith('/')) {
+      filename = `.${filename}`;
+    }
+    if (!filename.startsWith('.')) {
+      filename = `./${filename}`;
+    }
     console.log(colors.bold.black(`FileWriter:`) +  ` Writing file "${filename}" ...`);
     let paths = filename.split('/').slice(1, -1);
     for (let i = 1; i <= paths.length; i++) {

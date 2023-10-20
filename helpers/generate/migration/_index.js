@@ -212,6 +212,8 @@ module.exports = async (Instant, params) => {
 
   await checkMigrationState(Instant);
 
+  console.log();
+
   return true;
 
 };

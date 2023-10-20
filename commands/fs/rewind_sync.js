@@ -35,9 +35,13 @@ class FsRewindSyncCommand extends Command {
       );
     }
 
+    const env = environment;
+    const db = 'main';
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(`.env`));
+
     console.log();
     Instant.enableLogs(2);
-    await Instant.connect();
+    await Instant.connect(cfg);
 
     let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
     if (!hasMigrationsEnabled) {

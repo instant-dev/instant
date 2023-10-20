@@ -2,19 +2,23 @@ const { Command } = require('cmnd');
 const colors = require('colors/safe');
 
 const loadInstant = require('../../helpers/load_instant.js');
+const generateTest = require('../../helpers/generate/test/_index.js');
 
-class FsFastForwardCommand extends Command {
+class GenerateTestCommand extends Command {
 
   constructor() {
-    super('fs', 'fastForward');
+    super('g', 'test');
   }
 
   help () {
     return {
-      description: 'Pulls missing filesystem migrations from database',
-      args: [],
+      description: 'Generates new test',
+      args: ['test_name'],
       flags: {},
-      vflags: {}
+      vflags: {
+        for: 'Generate a test for a model',
+        function: 'Generate a test for an endpoint'
+      }
     };
   }
 
@@ -35,13 +39,23 @@ class FsFastForwardCommand extends Command {
       );
     }
 
+    let specificity = [params.args[0], params.vflags.for, params.vflags.function];
+    let submitted = specificity.filter(v => v);
+    if (!submitted.length) {
+      throw new Error(`Must specify one of "test_name", "--for" or "--function"`);
+    } else if (submitted.length > 1) {
+      throw new Error(`Can only specify one of "test_name", "--for" or "--function"`);
+    }
+
+    console.log();
+
     const env = environment;
     const db = 'main';
     let cfg = Instant.Config.read(env, db, Instant.readEnvObject(`.env`));
 
-    console.log();
     Instant.enableLogs(2);
-    await Instant.connect(cfg);
+    // Do not load a schema
+    await Instant.connect(cfg, null);
 
     let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
     if (!hasMigrationsEnabled) {
@@ -53,12 +67,22 @@ class FsFastForwardCommand extends Command {
     }
 
     Instant.Migrator.enableDangerous();
-    await Instant.Migrator.Dangerous.filesystem.fastForward();
+    // Run each filesystem migration to emulate schema state
+    const tmpMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
+    for (const migration of tmpMigrations) {
+      Instant.Schema.setMigrationId(migration.id);
+      for (const command of migration.up) {
+        await Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
+      }
+    }
+    // Apply changes
+    await Instant.Schema.update();
+    // Now we have correct schema
+    let result = await generateTest(Instant, params);
     Instant.Migrator.disableDangerous();
-    console.log();
 
   }
 
 }
 
-module.exports = FsFastForwardCommand;
+module.exports = GenerateTestCommand;
