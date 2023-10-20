@@ -3,16 +3,15 @@ import InstantORM from '@instant.dev/orm';
 import chai from 'chai';
 const expect = chai.expect;
 
-export const name = `ModelName tests`;
+const Instant = await InstantORM.connectToPool();
+const ModelName = Instant.Model('ModelName');
 
+export const name = `Model tests: ModelName`;
 /**
- * ModelName tests
+ * Model tests: ModelName
  * @param {any} setupResult Result of the function passed to `.setup()` in `test/run.mjs`
  */
 export default async function (setupResult) {
-
-  const Instant = await InstantORM.connectToPool();
-  const ModelName = Instant.Model('ModelName');
 
   it('Can create ModelName', async () => {
 
