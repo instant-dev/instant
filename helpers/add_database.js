@@ -5,7 +5,7 @@ const fileWriter = require('./file_writer.js');
 
 const couldUseVPC = (cfg) => {
   let matchString = cfg.connectionString || cfg.host;
-  if (matchString.match(/(vercel-storage\.com|supabase\.co|neon\.tech)/gi)) {
+  if (matchString.match(/(vercel-storage\.com|supabase\.co|neon\.tech|localhost)/gi)) {
     return false;
   } else {
     return true;
@@ -206,23 +206,25 @@ module.exports = async (Instant, env, db, projectName = null) => {
     }
   }
 
-  for (const [tmpEnv, {...tmpCfg}] of [[env, envCfg], ['test', testCfg]]) {
+  for (const [tmpEnv, tmpCfg] of [[env, envCfg], ['test', testCfg]]) {
 
     if (tmpCfg) {
 
+      let envCfg = {...tmpCfg};
+
       try {
-        await Instant.connect(tmpCfg, null);
+        await Instant.connect(envCfg, null);
       } catch (e) {
         if (e.message.startsWith('connection is insecure')) {
           console.log(colors.bold(`DatabaseConfig:`) + ` Notice: Connection requires SSL, enabling ...`);
-          if (tmpCfg.connectionString) {
-            tmpCfg.connectionString += '?ssl=true';
+          if (envCfg.connectionString) {
+            envCfg.connectionString += '?ssl=true';
           } else {
-            tmpCfg.ssl = true;
+            envCfg.ssl = true;
           }
-          await Instant.connect(tmpCfg, null);
-        } else if (e.message.endsWith(`Database "${tmpCfg.database}" does not exist.`)) {
-          let database = tmpCfg.database;
+          await Instant.connect(envCfg, null);
+        } else if (e.message.endsWith(`Database "${envCfg.database}" does not exist.`)) {
+          let database = envCfg.database;
           console.log();
           console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
           console.log(`However, you can create it now if you'd like.`);
@@ -238,13 +240,13 @@ module.exports = async (Instant, env, db, projectName = null) => {
             throw new Error(`Aborted. Database "${database}" does not exist.`);
           } else {
             console.log();
-            delete tmpCfg.database;
+            delete envCfg.database;
             Instant.disconnect();
-            await Instant.connect(tmpCfg, null);
+            await Instant.connect(envCfg, null);
             await Instant.database().create(database);
             Instant.disconnect();
-            tmpCfg.database = database;
-            await Instant.connect(tmpCfg, null);
+            envCfg.database = database;
+            await Instant.connect(envCfg, null);
           }
         } else {
           throw e;
@@ -263,13 +265,13 @@ module.exports = async (Instant, env, db, projectName = null) => {
       const envFile = tmpEnv === `development` ? `.env` : `.env.${tmpEnv}`;
 
       Instant.writeEnv(envFile, 'NODE_ENV', tmpEnv);
-      for (const key in tmpCfg) {
+      for (const key in envCfg) {
         if (['connectionString', 'host', 'user', 'port', 'password', 'database'].includes(key)) {
           const envVar = `${db}_database_${key}`.toUpperCase();
-          Instant.writeEnv(envFile, envVar, tmpCfg[key]);
-          tmpCfg[key] = `{{ ${envVar} }}`;
+          Instant.writeEnv(envFile, envVar, envCfg[key]);
+          envCfg[key] = `{{ ${envVar} }}`;
         } else if (key === 'tunnel') {
-          const tunnel = tmpCfg[key];
+          const tunnel = envCfg[key];
           for (const tkey in tunnel) {
             if (['host', 'user', 'port'].includes(tkey)) {
               const envVar = `${db}_database_tunnel_${tkey}`.toUpperCase();
@@ -279,11 +281,11 @@ module.exports = async (Instant, env, db, projectName = null) => {
           }
         }
       }
-      Instant.Config.write(tmpEnv, db, tmpCfg);
+      Instant.Config.write(tmpEnv, db, envCfg);
 
       // ignore the private key file if it was added
-      if (tmpCfg?.tunnel?.private_key) {
-        fileWriter.writeLine('.gitignore', tmpCfg.tunnel.private_key);
+      if (envCfg?.tunnel?.private_key) {
+        fileWriter.writeLine('.gitignore', envCfg.tunnel.private_key);
       }
 
       Instant.disconnect();
