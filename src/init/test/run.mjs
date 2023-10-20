@@ -21,15 +21,15 @@ testEngine.setup(async () => {
   console.log('# Bootstrapping test database ... ');
   console.log();
 
-  // Bootstrap database; empty test db, run all migrations and seed data
-  const Instant = new InstantORM();
-  Instant.enableLogs(2); // 0: off, 1: err, 2: sys, 3: info, 4: query
-  await Instant.connect();
-  Instant.Migrator.enableDangerous();
-  const seed = Instant.Migrator.Dangerous.filesystem.readSeed();
-  await Instant.Migrator.Dangerous.bootstrap(seed);
-  Instant.Migrator.disableDangerous();
-  Instant.disconnect();
+  // Bootstrap test database; clear db, run migrations, apply seed
+  const InstantSetup = new InstantORM();
+  InstantSetup.enableLogs(2); // 0: off, 1: err, 2: sys, 3: info, 4: query
+  await InstantSetup.connect();
+  InstantSetup.Migrator.enableDangerous();
+  const seed = InstantSetup.Migrator.Dangerous.filesystem.readSeed();
+  await InstantSetup.Migrator.Dangerous.bootstrap(seed);
+  InstantSetup.Migrator.disableDangerous();
+  InstantSetup.disconnect();
 
   console.log();
   console.log(`# Starting test gateway on localhost:${PORT} ... `);
@@ -40,7 +40,10 @@ testEngine.setup(async () => {
   gateway.load(process.cwd());       // load routes from filesystem
   gateway.listen(PORT);              // start server
 
-  return { gateway };
+  // Start InstantORM; connect to a pool
+  const Instant = await InstantORM.connectToPool();
+
+  return { gateway, Instant };
 
 });
 
@@ -52,8 +55,9 @@ if (args[0]) {
   await testEngine.runAll();
 }
 
-// (5) Finish; close Gateway
+// (5) Finish; close Gateway and disconnect from database
 // Receive arguments from .setup()
-testEngine.finish(async ({ gateway }) => {
+testEngine.finish(async ({ gateway, Instant }) => {
   gateway.close();
+  Instant.disconnect();
 });

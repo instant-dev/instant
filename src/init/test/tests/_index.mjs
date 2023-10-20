@@ -27,9 +27,6 @@ export default async function (setupResult) {
     //   this.put(path, bodyParams, headers);
     //   this.del(path, queryParams, headers);
 
-    // Note that Instant API merges queryParams and bodyParams,
-    //   you should never need to test with both
-
     let result = await this.get(`/`, {username: testUsername});
 
     expect(result).to.exist;
