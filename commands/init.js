@@ -22,20 +22,23 @@ const writeInitFiles = (pathname, pkg) => {
         throw new Error(`Invalid "package.json" in init files`);
       }
       const scripts = json.scripts || {};
-      const deps = json.dependencies || {};
+      const mainDeps = json.dependencies || {};
+      const devDeps = json.devDependencies || {};
       for (const key in scripts) {
         fileWriter.writeJSON('package.json', `scripts.${key}`, scripts[key]);
       }
-      const depList = [];
-      for (const name in deps) {
-        depList.push(`${name}@${deps[name]}`);
-      }
-      if (depList.length) {
-        console.log();
-        console.log(colors.bold.black(`Installing:`) + ` "${depList.join('", "')}" ...`);
-        const installString = `npm i ${depList.join(' ')} --save`;
-        childProcess.execSync(installString, {stdio: 'inherit'});
-        console.log();
+      console.log();
+      for (const [ deps, devMode ] of [[mainDeps, false], [devDeps, true]]) {
+        const depList = [];
+        for (const name in deps) {
+          depList.push(`${name}@${deps[name]}`);
+        }
+        if (depList.length) {
+          console.log(colors.bold.black(`Installing:`) + ` "${depList.join('", "')}" ...`);
+          const installString = `npm i ${depList.join(' ')} --save${devMode ? `-dev` : ``}`;
+          childProcess.execSync(installString, {stdio: 'inherit'});
+          console.log();
+        }
       }
     } else {
       fileWriter.writeFile(filename, files[filename], false);
@@ -218,7 +221,7 @@ class InitCommand extends Command {
       console.log(`Instant ORM added to project "${colors.bold.blue(name)}" successfully!`);
     }
 
-    await addDatabase(Instant, 'development', 'main');
+    await addDatabase(Instant, 'development', 'main', name);
 
     Instant.Migrator.enableDangerous();
     Instant.Migrator.Dangerous.createSeedIfNotExists();

@@ -1,9 +1,14 @@
 {
   "scripts": {
-    "start": "node instant.mjs"
+    "start": "node instant.mjs",
+    "test": "mocha test/run.mjs"
   },
   "dependencies": {
     "@instant.dev/api": "latest",
     "dotenv": "latest"
+  },
+  "devDependencies": {
+    "mocha": "latest",
+    "chai": "latest"
   }
 }

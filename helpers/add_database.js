@@ -12,7 +12,9 @@ const couldUseVPC = (cfg) => {
   }
 };
 
-module.exports = async (Instant, env, db) => {
+module.exports = async (Instant, env, db, projectName = null) => {
+
+  let suggestedName = (projectName || '').replace(/\W+/gi, '_');
 
   let inputType = 'manual';
   if (env === 'development') {
@@ -50,7 +52,8 @@ module.exports = async (Instant, env, db) => {
     inputType = connectResults['inputType'];
   }
 
-  let envCfg;
+  let envCfg = null;
+  let testCfg = null;
   if (inputType === 'connectionString') {
     const connectRE = /postgres\:\/\/(\w+)(?:\:(.*))?@([a-z0-9\-\.]+):(\d+)\/([a-z0-9\-\_]+)/gi;
     let results = await inquirer.prompt([
@@ -71,7 +74,7 @@ module.exports = async (Instant, env, db) => {
     results.connectionString = results.connectionString.match(connectRE)[0];
     envCfg = results;
   } else {
-    let results = await inquirer.prompt([
+    let inputs = [
       {
         name: 'host',
         type: 'input',
@@ -100,10 +103,23 @@ module.exports = async (Instant, env, db) => {
         name: 'database',
         type: 'input',
         message: 'database',
-        default: 'postgres'
+        default: suggestedName ? `${suggestedName}_development` : `postgres`
       }
-    ]);
+    ];
+    let results = await inquirer.prompt(inputs);
     envCfg = results;
+    if (env === 'development') {
+      let testResults = await inquirer.prompt({
+        name: 'test_database',
+        type: 'input',
+        message: 'test database',
+        default: results.database.endsWith('_development')
+          ? results.database.replace(/_development$/gi, '_test')
+          : `${results.database}_test`
+      });
+      testCfg = {...envCfg};
+      testCfg.database = testResults.test_database;
+    }
   }
 
   console.log();
@@ -190,84 +206,99 @@ module.exports = async (Instant, env, db) => {
     }
   }
 
-  try {
-    await Instant.connect(envCfg, null);
-  } catch (e) {
-    if (e.message.startsWith('connection is insecure')) {
-      console.log(colors.bold(`DatabaseConfig:`) + ` Notice: Connection requires SSL, enabling ...`);
-      if (envCfg.connectionString) {
-        envCfg.connectionString += '?ssl=true';
-      } else {
-        envCfg.ssl = true;
-      }
-      await Instant.connect(envCfg, null);
-    } else if (e.message.endsWith(`Database "${envCfg.database}" does not exist.`)) {
-      let database = envCfg.database;
-      console.log();
-      console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
-      console.log(`However, you can create it now if you'd like.`);
-      console.log();
-      let results = await inquirer.prompt([
-        {
-          name: 'create',
-          type: 'confirm',
-          message: `Create database "${database}"?`
-        }
-      ]);
-      if (!results['create']) {
-        throw new Error(`Aborted. Database "${database}" does not exist.`);
-      } else {
-        console.log();
-        delete envCfg.database;
-        Instant.disconnect();
-        await Instant.connect(envCfg, null);
-        await Instant.database().create(database);
-        Instant.disconnect();
-        envCfg.database = database;
-        await Instant.connect(envCfg, null);
-      }
-    } else {
-      throw e;
-    }
-  }
+  for (const [tmpEnv, {...tmpCfg}] of [[env, envCfg], ['test', testCfg]]) {
 
-  if (env !== 'development') {
-    let migrationsEnabled = await Instant.Migrator.isEnabled();
-    if (!migrationsEnabled) {
-      Instant.Migrator.enableDangerous();
-      await Instant.Migrator.Dangerous.prepare();
-      Instant.Migrator.disableDangerous();
-    }
-  }
+    if (tmpCfg) {
 
-  const envFile = env === `development` ? `.env` : `.env.${env}`;
-
-  Instant.writeEnv(envFile, 'NODE_ENV', env);
-  for (const key in envCfg) {
-    if (['connectionString', 'host', 'user', 'port', 'password', 'database'].includes(key)) {
-      const envVar = `${db}_database_${key}`.toUpperCase();
-      Instant.writeEnv(envFile, envVar, envCfg[key]);
-      envCfg[key] = `{{ ${envVar} }}`;
-    } else if (key === 'tunnel') {
-      const tunnel = envCfg[key];
-      for (const tkey in tunnel) {
-        if (['host', 'user', 'port'].includes(tkey)) {
-          const envVar = `${db}_database_tunnel_${tkey}`.toUpperCase();
-          Instant.writeEnv(envFile, envVar, tunnel[tkey]);
-          tunnel[tkey] = `{{ ${envVar} }}`;
+      try {
+        await Instant.connect(tmpCfg, null);
+      } catch (e) {
+        if (e.message.startsWith('connection is insecure')) {
+          console.log(colors.bold(`DatabaseConfig:`) + ` Notice: Connection requires SSL, enabling ...`);
+          if (tmpCfg.connectionString) {
+            tmpCfg.connectionString += '?ssl=true';
+          } else {
+            tmpCfg.ssl = true;
+          }
+          await Instant.connect(tmpCfg, null);
+        } else if (e.message.endsWith(`Database "${tmpCfg.database}" does not exist.`)) {
+          let database = tmpCfg.database;
+          console.log();
+          console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
+          console.log(`However, you can create it now if you'd like.`);
+          console.log();
+          let results = await inquirer.prompt([
+            {
+              name: 'create',
+              type: 'confirm',
+              message: `Create database "${database}"?`
+            }
+          ]);
+          if (!results['create']) {
+            throw new Error(`Aborted. Database "${database}" does not exist.`);
+          } else {
+            console.log();
+            delete tmpCfg.database;
+            Instant.disconnect();
+            await Instant.connect(tmpCfg, null);
+            await Instant.database().create(database);
+            Instant.disconnect();
+            tmpCfg.database = database;
+            await Instant.connect(tmpCfg, null);
+          }
+        } else {
+          throw e;
         }
       }
-    }
-  }
-  Instant.Config.write(env, db, envCfg);
 
-  // ignore the private key file if it was added
-  if (envCfg?.tunnel?.private_key) {
-    fileWriter.writeLine('.gitignore', envCfg.tunnel.private_key);
+      if (tmpEnv !== 'development') {
+        let migrationsEnabled = await Instant.Migrator.isEnabled();
+        if (!migrationsEnabled) {
+          Instant.Migrator.enableDangerous();
+          await Instant.Migrator.Dangerous.prepare();
+          Instant.Migrator.disableDangerous();
+        }
+      }
+
+      const envFile = tmpEnv === `development` ? `.env` : `.env.${tmpEnv}`;
+
+      Instant.writeEnv(envFile, 'NODE_ENV', tmpEnv);
+      for (const key in tmpCfg) {
+        if (['connectionString', 'host', 'user', 'port', 'password', 'database'].includes(key)) {
+          const envVar = `${db}_database_${key}`.toUpperCase();
+          Instant.writeEnv(envFile, envVar, tmpCfg[key]);
+          tmpCfg[key] = `{{ ${envVar} }}`;
+        } else if (key === 'tunnel') {
+          const tunnel = tmpCfg[key];
+          for (const tkey in tunnel) {
+            if (['host', 'user', 'port'].includes(tkey)) {
+              const envVar = `${db}_database_tunnel_${tkey}`.toUpperCase();
+              Instant.writeEnv(envFile, envVar, tunnel[tkey]);
+              tunnel[tkey] = `{{ ${envVar} }}`;
+            }
+          }
+        }
+      }
+      Instant.Config.write(tmpEnv, db, tmpCfg);
+
+      // ignore the private key file if it was added
+      if (tmpCfg?.tunnel?.private_key) {
+        fileWriter.writeLine('.gitignore', tmpCfg.tunnel.private_key);
+      }
+
+      Instant.disconnect();
+
+    }
+
   }
 
   console.log();
   console.log(colors.bold.green(`Success: `) + `Database for "${env}" added successfully to _instant/db.json["${env}"]["${db}"]!`);
+  if (testCfg) {
+    console.log(colors.bold.green(`Success: `) + `Database for "test" added successfully to _instant/db.json["test"]["${db}"]!`);
+  }
   console.log();
+
+  await Instant.connect(envCfg, null);
 
 };
