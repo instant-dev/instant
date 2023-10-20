@@ -48,7 +48,7 @@ class AccessToken extends InstantORM.Core.Model {
    * Verifies an access token key and return joined user
    * @param {string} key The access token key to verify
    */
-  static async verify (key) {
+  static async verifySession (key) {
     let accessTokens = await this.query()
       .join('user')
       .where({
@@ -58,7 +58,7 @@ class AccessToken extends InstantORM.Core.Model {
       })
       .select();
     if (!accessTokens.length) {
-      throw new Error('404: Access token key is invalid');
+      throw new Error('401: Access token key is invalid');
     }
     let accessToken = accessTokens[0];
     if (!accessToken.joined('user')) {

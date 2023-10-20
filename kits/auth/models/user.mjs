@@ -154,7 +154,7 @@ class User extends InstantORM.Core.Model {
   static async authenticate (headers) {
     const AccessToken = this.getModel('AccessToken');
     let key = await this.parseAuthenticationKey(headers);
-    let accessToken = await AccessToken.verify(key);
+    let accessToken = await AccessToken.verifySession(key);
     return accessToken.joined('user');
   }
 

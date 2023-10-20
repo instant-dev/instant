@@ -1,11 +1,12 @@
 import chai from 'chai';
 const expect = chai.expect;
 
-// Will default to the filename if no name exported
+// Defaults to the filename if no name exported
 export const name = `Main Tests`;
 
 /**
  * Main Tests
+ * You can pass in as many arguments as you would like in `test/run.mjs`
  * @param {any} setupResult Result of the function passed to `.setup()` in `test/run.mjs`
  */
 export default async function (setupResult) {
@@ -25,6 +26,9 @@ export default async function (setupResult) {
     //   this.post(path, bodyParams, headers);
     //   this.put(path, bodyParams, headers);
     //   this.del(path, queryParams, headers);
+
+    // Note that Instant API merges queryParams and bodyParams,
+    //   you should never need to test with both
 
     let result = await this.get(`/`, {username: testUsername});
 
