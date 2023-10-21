@@ -17,7 +17,21 @@ module.exports = async (Instant, params) => {
 
   if (testName) {
 
-    // do nothing
+    const pathname = path.join(__dirname, '..', '..', '..', 'src', 'test', 'blank.mjs');
+    if (!fs.existsSync(pathname)) {
+      throw new Error(`No test template found for model.`);
+    }
+
+    let fileString = fs.readFileSync(pathname).toString();
+    fileString = fileString.replaceAll('Name', testName);
+
+    let newFilename = `test/tests/${testName}.mjs`;
+    const fileData = Buffer.from(fileString);
+    fileWriter.writeFile(newFilename, fileData, false);
+
+    console.log();
+    console.log(colors.bold.green(`Success!`) + ` Created tests for "${colors.bold.green(testName)}"!`);
+    console.log();
 
   } else if (modelFor) {
     
