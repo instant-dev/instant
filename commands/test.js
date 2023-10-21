@@ -5,16 +5,16 @@ const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
 
-class ServeCommand extends Command {
+class TestCommand extends Command {
 
   constructor() {
-    super('serve');
+    super('test');
   }
 
   help () {
     const environment = process.env.NODE_ENV || 'development';
     return {
-      description: 'Starts a development server using package.json["scripts"]["start"]',
+      description: 'Runs tests using package.json["scripts"]["test"]',
       args: [],
       flags: {},
       vflags: {}
@@ -35,7 +35,7 @@ class ServeCommand extends Command {
     }
 
     console.log();
-    console.log(`Running "${colors.green.bold('instant.dev')}" development server ...`);
+    console.log(`Running tests ...`);
     const pkgExists = fs.existsSync('package.json');
     if (pkgExists) {
       let pkg;
@@ -44,12 +44,19 @@ class ServeCommand extends Command {
       } catch (e) {
         throw new Error(`Could not read "package.json"`);
       }
-      if (pkg?.scripts?.start) {
-        console.log(`Running script: ${colors.blue.bold(pkg.scripts.start)} ...`);
+      if (pkg?.scripts?.test) {
+        console.log(`Running script: ${colors.blue.bold(pkg.scripts.test)} ...`);
         console.log();
-        childProcess.spawnSync(pkg.scripts.start, {stdio: 'inherit', shell: true});
+        childProcess.spawnSync(
+          `${pkg.scripts.test} ${params.args.join(' ')}`,
+          {
+            stdio: 'inherit',
+            shell: true,
+            env: {...process.env, PATH: process.env.PATH + ':./node_modules/.bin'}
+          }
+        );
       } else {
-        throw new Error(`Could not find "package.json"["scripts"]["start"]`);
+        throw new Error(`Could not find "package.json"["scripts"]["test"]`);
       }
     } else {
       throw new Error(`No "package.json" in this directory`);
@@ -61,4 +68,4 @@ class ServeCommand extends Command {
 
 }
 
-module.exports = ServeCommand;
+module.exports = TestCommand;
