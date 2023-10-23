@@ -5,6 +5,8 @@ const inflect = require('i')();
 const argTypeInputs = require('../arg_type_inputs.js');
 const checkMigrationState = require('../../check_migration_state.js');
 
+const generateTest = require('../test/_index.js');
+
 module.exports = async (Instant, params) => {
 
   let name = inflect.underscore(params.args[0] || '');
@@ -92,8 +94,12 @@ module.exports = async (Instant, params) => {
   Instant.Generator.extend(table);
 
   console.log();
-  console.log(colors.bold.green(`Successfully created model "${table}"!`));
+  console.log(colors.bold.green(`Success!`) + ` Created model "${colors.bold.green(table)}"!`);
   console.log();
+
+  if (!params.vflags.hasOwnProperty('no-tests')) {
+    await generateTest(Instant, {args: [], flags: {}, vflags: {for: [table]}});
+  }
 
   await checkMigrationState(Instant);
 

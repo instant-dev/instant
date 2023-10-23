@@ -17,7 +17,8 @@ class GenerateEndpointCommand extends Command {
       flags: {},
       vflags: {
         'for': 'Model which you are generating the endpoint for',
-        'blank': 'Create a blank endpoint'
+        'blank': 'Create a blank endpoint',
+        'no-tests': 'Prevents automatic creation of tests'
       }
     };
   }

@@ -4,6 +4,7 @@ const fs = require('fs');
 const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
+const checkMigrationState = require('../helpers/check_migration_state.js');
 
 class TestCommand extends Command {
 

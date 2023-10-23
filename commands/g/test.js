@@ -67,17 +67,6 @@ class GenerateTestCommand extends Command {
     }
 
     Instant.Migrator.enableDangerous();
-    // Run each filesystem migration to emulate schema state
-    const tmpMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
-    for (const migration of tmpMigrations) {
-      Instant.Schema.setMigrationId(migration.id);
-      for (const command of migration.up) {
-        await Instant.Schema[command[0]].apply(Instant.Schema, command.slice(1));
-      }
-    }
-    // Apply changes
-    await Instant.Schema.update();
-    // Now we have correct schema
     let result = await generateTest(Instant, params);
     Instant.Migrator.disableDangerous();
 

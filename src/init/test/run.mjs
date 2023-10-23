@@ -10,26 +10,26 @@ const PORT = 7357; // Leetspeak for "TEST"; can be anything
 dotenv.config({path: `.env.test`});
 process.env.NODE_ENV = `test`;
 
-// (2) Initialize; load tests
+// (2) Bootstrap test database; clear db, run migrations, apply seed
+console.log('# Bootstrapping test database ... ');
+console.log();
+
+const InstantSetup = new InstantORM();
+InstantSetup.enableLogs(2); // 0: off, 1: err, 2: sys, 3: info, 4: query
+await InstantSetup.connect();
+InstantSetup.Migrator.enableDangerous();
+const seed = InstantSetup.Migrator.Dangerous.filesystem.readSeed();
+await InstantSetup.Migrator.Dangerous.bootstrap(seed);
+InstantSetup.Migrator.disableDangerous();
+InstantSetup.disconnect();
+
+// (3) Initialize and load tests; set PORT for request mocking
 const testEngine = new TestEngine(PORT);
 await testEngine.initialize('./test/tests');
 
-// (3) Setup; create objects and infrastructure for tests
+// (4) Setup; create objects and infrastructure for tests
 // Arguments returned here will be sent to .finish()
 testEngine.setup(async () => {
-
-  console.log('# Bootstrapping test database ... ');
-  console.log();
-
-  // Bootstrap test database; clear db, run migrations, apply seed
-  const InstantSetup = new InstantORM();
-  InstantSetup.enableLogs(2); // 0: off, 1: err, 2: sys, 3: info, 4: query
-  await InstantSetup.connect();
-  InstantSetup.Migrator.enableDangerous();
-  const seed = InstantSetup.Migrator.Dangerous.filesystem.readSeed();
-  await InstantSetup.Migrator.Dangerous.bootstrap(seed);
-  InstantSetup.Migrator.disableDangerous();
-  InstantSetup.disconnect();
 
   console.log();
   console.log(`# Starting test gateway on localhost:${PORT} ... `);
@@ -47,7 +47,7 @@ testEngine.setup(async () => {
 
 });
 
-// (4) Run tests; use first argument to specify a test
+// (5) Run tests; use first argument to specify a test
 const args = process.argv.slice(3);
 if (args[0]) {
   await testEngine.run(args[0]);
@@ -55,7 +55,7 @@ if (args[0]) {
   await testEngine.runAll();
 }
 
-// (5) Finish; close Gateway and disconnect from database
+// (6) Finish; close Gateway and disconnect from database
 // Receive arguments from .setup()
 testEngine.finish(async ({ gateway, Instant }) => {
   gateway.close();

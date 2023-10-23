@@ -15,7 +15,9 @@ class GenerateModelCommand extends Command {
       description: 'Generates new models: creates a migration and a model extension',
       args: ['model_name'],
       flags: {},
-      vflags: {}
+      vflags: {
+        'no-tests': 'Prevents automatic creation of tests'
+      }
     };
   }
 

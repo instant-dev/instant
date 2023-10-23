@@ -6,6 +6,8 @@ const inflect = require('i')();
 
 const fileWriter = require('../../file_writer.js');
 
+const generateTest = require('../test/_index.js');
+
 module.exports = async (Instant, params) => {
 
   let writePathname = params.args[0] || '';
@@ -13,6 +15,7 @@ module.exports = async (Instant, params) => {
 
   const modelFor = ((params.vflags.for || [])[0] || '');
   const isBlank = !!params.vflags.blank;
+  let newFilename;
 
   if (!modelFor && !isBlank) {
     throw new Error(
@@ -47,7 +50,7 @@ module.exports = async (Instant, params) => {
 
     const files = fileWriter.readRecursive(pathname);
     for (const filename in files) {
-      let newFilename = filename;
+      newFilename = filename;
       newFilename = newFilename.replace(/^\/functions\//gi, $0 => $0 + (writePathname ? `${writePathname}/` : ``));
       let fileData = files[filename];
       if (newFilename.match(/\/__template__([\/\.])/gi)) {
@@ -67,7 +70,7 @@ module.exports = async (Instant, params) => {
     }
 
     console.log();
-    console.log(colors.bold.green(`Success!`) + ` Created endpoint for "${colors.bold.green(names.ModelName)}"!`);
+    console.log(colors.bold.green(`Success!`) + ` Created endpoint for "${colors.bold.green(names.ModelName)}" at "${newFilename}"!`);
     console.log();
   
   } else if (isBlank) {
@@ -83,16 +86,22 @@ module.exports = async (Instant, params) => {
 
     const files = fileWriter.readRecursive(pathname);
     for (const filename in files) {
-      let newFilename = filename;
+      newFilename = filename;
       newFilename = newFilename.replace(/^\/functions\//gi, $0 => $0 + (writePathname ? `${writePathname}/` : ``));
       let fileData = files[filename];
       let result = fileWriter.writeFile(newFilename, fileData, false);
     }
 
     console.log();
-    console.log(colors.bold.green(`Success!`) + ` Created blank endpoint!`);
+    console.log(colors.bold.green(`Success!`) + ` Created blank endpoint at "${newFilename}"!`);
     console.log();
 
+  }
+
+  if (!params.vflags.hasOwnProperty('no-tests')) {
+    Instant.Migrator.enableDangerous();
+    await generateTest(Instant, {args: [], flags: {}, vflags: {function: [newFilename]}});
+    Instant.Migrator.disableDangerous();
   }
 
   return true;
