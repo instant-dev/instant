@@ -4,7 +4,6 @@ const fs = require('fs');
 const childProcess = require('child_process');
 
 const loadInstant = require('../helpers/load_instant.js');
-const checkMigrationState = require('../helpers/check_migration_state.js');
 
 class TestCommand extends Command {
 
@@ -48,7 +47,7 @@ class TestCommand extends Command {
       if (pkg?.scripts?.test) {
         console.log(`Running script: ${colors.blue.bold(pkg.scripts.test)} ...`);
         console.log();
-        childProcess.spawnSync(
+        const result = childProcess.spawnSync(
           `${pkg.scripts.test} ${params.args.join(' ')}`,
           {
             stdio: 'inherit',
@@ -56,6 +55,13 @@ class TestCommand extends Command {
             env: {...process.env, PATH: process.env.PATH + ':./node_modules/.bin'}
           }
         );
+        if (result.status === 0) {
+          console.log(colors.bold.green(`Success!`) + ` All tests passed.`);
+          console.log();
+        } else {
+          console.log(colors.bold.red(`Failure:`) + ` One or more of your tests failed.`);
+          console.log();
+        }
       } else {
         throw new Error(`Could not find "package.json"["scripts"]["test"]`);
       }
