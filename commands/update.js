@@ -18,7 +18,10 @@ class UpdateCommand extends Command {
       description: 'Updates all installed packages to latest version',
       args: [],
       flags: {},
-      vflags: {}
+      vflags: {
+        'force-local': 'Forces a re-installation of all local packages',
+        'force': 'Forces a re-installation of all packages'
+      }
     };
   }
 
@@ -35,22 +38,28 @@ class UpdateCommand extends Command {
     console.log(verifiedPackages);
 
     const updatePackages = verifiedPackages.filter(pkg => semver.gt(pkg.latest, pkg.version));
-    const globalPackages = updatePackages.filter(pkg => pkg.global);
-    const localPackages = updatePackages.filter(pkg => !pkg.global);
+    const globalPackages = (params.vflags['force'])
+      ? verifiedPackages.filter(pkg => pkg.global)
+      : updatePackages.filter(pkg => pkg.global);
+    const localPackages = (params.vflags['force'] || params.vflags['force-local'])
+    ? verifiedPackages.filter(pkg => !pkg.global)
+    : updatePackages.filter(pkg => !pkg.global);
 
     if (globalPackages.length) {
       const result = childProcess.spawnSync(`npm i ${globalPackages.map(pkg => `${pkg.name}@latest`).join(' ')} -g`, {stdio: 'inherit', shell: true});
-      if (result.code !== 0) {
+      if (result.status !== 0) {
         throw new Error(`Error installing global packages`);
       }
-      console.log(colors.bold.green(`Installed:`) + ` ${globalPackages.legnth} global packages (${globalPackages.map(pkg => `${pkg.name}`).join(', ')})`);
+      console.log();
+      console.log(colors.bold.green(`Installed:`) + ` ${globalPackages.length} global packages\n${globalPackages.map(pkg => ` - ${pkg.name}@${pkg.latest}`).join('\n')}`);
     }
     if (localPackages.length) {
       const result = childProcess.spawnSync(`npm i ${localPackages.map(pkg => `${pkg.name}@latest`).join(' ')}`, {stdio: 'inherit', shell: true});
-      if (result.code !== 0) {
+      if (result.status !== 0) {
         throw new Error(`Error installing local packages`);
       }
-      console.log(colors.bold.green(`Installed:`) + ` ${localPackages.legnth} local packages (${localPackages.map(pkg => `${pkg.name}`).join(', ')})`);
+      console.log();
+      console.log(colors.bold.green(`Installed:`) + ` ${localPackages.length} local packages\n${localPackages.map(pkg => ` - ${pkg.name}@${pkg.latest}`).join('\n')}`);
     }
 
     console.log();
