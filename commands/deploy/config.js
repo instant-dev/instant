@@ -164,7 +164,7 @@ class DeployConfigCommand extends Command {
       );
     }
 
-    const srcRoot = path.join(__dirname, '..', 'src');
+    const srcRoot = path.join(__dirname, '..', '..', 'src');
     const deployFilesRoot = path.join(srcRoot, 'deploy', configTarget);
     if (fs.existsSync(deployFilesRoot)) {
       const files = fileWriter.readRecursive(deployFilesRoot);
