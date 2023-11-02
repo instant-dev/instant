@@ -106,9 +106,9 @@ module.exports = async (print = false) => {
             ``
           ].join('\n')
         }),
-        ``,
-        `or install all with:`,
-        `${colors.bold.grey(`instant update`)}`
+        `Install all with:`,
+        `${colors.bold.grey(`instant update`)}`,
+        ``
       )
     );
   }
