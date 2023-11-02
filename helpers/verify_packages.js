@@ -105,7 +105,10 @@ module.exports = async (print = false) => {
             `${colors.bold.grey(`npm i ${pkg.name}@latest${pkg.global ? ' -g' : ''}`)}`,
             ``
           ].join('\n')
-        })
+        }),
+        ``,
+        `or install all with:`,
+        `${colors.bold.grey(`instant update`)}`
       )
     );
   }

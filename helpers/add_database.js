@@ -301,6 +301,8 @@ module.exports = async (Instant, env, db, projectName = null) => {
   }
   console.log();
 
+  const envFile = env === 'development' ? `.env` : `.env.${env}`;
+  envCfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
   await Instant.connect(envCfg, null);
 
 };
