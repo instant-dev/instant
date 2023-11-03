@@ -189,7 +189,8 @@ class KitCommand extends Command {
       }]);
       let value = envResult[envVar.name];
       console.log();
-      Instant.writeEnv(`.env.${Instant.Config.getProcessEnv()}`, envVar.name, value);
+      Instant.writeEnv(`.env`, envVar.name, value);
+      Instant.writeEnv(`.env.test`, envVar.name, value);
       console.log();
     }
 

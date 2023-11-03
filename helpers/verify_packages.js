@@ -33,6 +33,12 @@ module.exports = async (print = false) => {
     // do nothing:
     // @instant.dev/vectors not installed
   }
+  try {
+    pkgs.payments = require(path.join(process.cwd(), '/node_modules/@instant.dev/payments/package.json'));
+  } catch (e) {
+    // do nothing:
+    // @instant.dev/payments not installed
+  }
   const packages = [
     {
       title: 'Instant CLI',
@@ -60,6 +66,11 @@ module.exports = async (print = false) => {
       title: 'Instant Vectors',
       name: pkgs.vectors ? pkgs.vectors.name : null,
       version: pkgs.vectors ? pkgs.vectors.version : null
+    },
+    {
+      title: 'Instant Payments',
+      name: pkgs.payments ? pkgs.payments.name : null,
+      version: pkgs.payments ? pkgs.payments.version : null
     }
   ];
   const checkPackages = packages.filter(pkg => !!pkg.name);

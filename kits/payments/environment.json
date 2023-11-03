@@ -1,0 +1,12 @@
+[
+  {
+    "name": "STRIPE_SECRET_KEY",
+    "description": "Please provide your Stripe (Test Mode) Secret Key\nKeys are available at => https://dashboard.stripe.com/test/apikeys",
+    "defaultValue": "sk_test_..."
+  },
+  {
+    "name": "STRIPE_PUBLISHABLE_KEY",
+    "description": "Please provide your Stripe (Test Mode) Publishable Key\nKeys are available at => https://dashboard.stripe.com/test/apikeys",
+    "defaultValue": "pk_test_..."
+  }
+]
