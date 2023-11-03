@@ -1,0 +1,12 @@
+[
+  {
+    "name": "ai_assistant",
+    "display_name": "AI Assistant",
+    "description": "Number of messages you get with our helpful AI assistant",
+    "type": "flag",
+    "settings": {
+      "value": 5,
+      "display_value": "5 messages per month"
+    }
+  }
+]

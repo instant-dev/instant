@@ -1,0 +1,25 @@
+[
+  {
+    "name": "free_plan",
+    "display_name": "Free",
+    "enabled": true,
+    "visible": true,
+    "price": null,
+    "line_items_settings": {}
+  },
+  {
+    "name": "basic_plan",
+    "display_name": "Basic",
+    "enabled": true,
+    "visible": true,
+    "price": {
+      "usd": 1500
+    },
+    "line_items_settings": {
+      "ai_assistant": {
+        "value": 5000,
+        "display_value": "5,000 messages per month"
+      }
+    }
+  }
+]
