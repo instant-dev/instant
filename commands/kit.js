@@ -177,6 +177,7 @@ class KitCommand extends Command {
       console.log();
     }
 
+    const entries = Instant.readEnvObject(`.env`);
     for (const envVar of kit.environment) {
       const message = (envVar.description || '')
         .replace(/https?:\/\/[^\s]+/gi, ($0) => colors.bold.blue.underline($0));
@@ -185,7 +186,7 @@ class KitCommand extends Command {
       const envResult = await inquirer.prompt([{
         name: envVar.name,
         type: 'input',
-        default: envVar.defaultValue
+        default: entries[envVar.name] || envVar.defaultValue
       }]);
       let value = envResult[envVar.name];
       console.log();
