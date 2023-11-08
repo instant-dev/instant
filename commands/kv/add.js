@@ -1,22 +1,22 @@
 const { Command } = require('cmnd');
 
 const loadInstant = require('../../helpers/load_instant.js');
-const addDatabase = require('../../helpers/add_database.js');
+const addKV = require('../../helpers/add_kv.js');
 
-class DbAddCommand extends Command {
+class KVAddCommand extends Command {
 
   constructor() {
-    super('db', 'add');
+    super('kv', 'add');
   }
 
   help () {
     return {
-      description: 'Adds a new remote database to an environment',
+      description: 'Adds a new key-value store to an environment',
       args: [],
       flags: {},
       vflags: {
-        env: `Environment to associate remote database with`,
-        db: 'Database alias to connect to (default: main)'
+        env: `Environment to associate remote key-value store with`,
+        db: 'Key-value store alias to connect to (default: main)'
       }
     };
   }
@@ -37,20 +37,15 @@ class DbAddCommand extends Command {
         `Must specify environment with --env.\n` +
         `Recommended environment names are: staging, preview, production`
       );
-    } else if (env === 'development') {
-      throw new Error(
-        `Can not change "development" database.\n` +
-        `Try running \`instant init\` instead.`
-      );
     } else if (env === 'local') {
       throw new Error(
         `Local databases use the "development" environment.\n`,
-        `If you'd like to chang the "development" database, try running \`instant init\` instead.`
+        `If you'd like to chang the "development" database, try running \`instant kv:add --env development\` instead.`
       )
     }
 
     Instant.enableLogs(2);
-    await addDatabase(Instant, env, db);
+    await addKV(Instant, env, db);
 
     return void 0;
 
@@ -58,4 +53,4 @@ class DbAddCommand extends Command {
 
 }
 
-module.exports = DbAddCommand;
+module.exports = KVAddCommand;

@@ -1,35 +1,47 @@
 const colors = require('colors/safe');
 const inquirer = require('inquirer');
 
+const path = require('path');
+const fs = require('fs');
+
 const fileWriter = require('./file_writer.js');
 
 const couldUseVPC = (cfg) => {
   let matchString = cfg.connectionString || cfg.host;
-  if (matchString.match(/(vercel-storage\.com|supabase\.co|neon\.tech|localhost)/gi)) {
+  if (matchString.match(/(upstash.io|localhost)/gi)) {
     return false;
   } else {
     return true;
   }
 };
 
-module.exports = async (Instant, env, db, projectName = null) => {
+module.exports = async (Instant, env, db) => {
 
-  let suggestedName = (projectName || '').replace(/\W+/gi, '_');
+  const pkgPath = path.join(process.cwd(), '/node_modules/@instant.dev/kv');
+  if (!fs.existsSync(pkgPath)) {
+    throw new Error(
+      `Must have Instant KV installed to add a KV Store.\n` +
+      `Install with \`npm i @instant.dev/kv\``
+    )
+  }
+
+  const InstantKV = require(pkgPath);
+  const kv = new InstantKV({connectTimeout: 1000});
 
   let inputType = 'manual';
   if (env === 'development') {
     console.log();
-    console.log(`Let's connect to your local ${colors.bold.blue('🐘 Postgres')} instance.`);
-    console.log(`Please enter your local Postgres credentials:`);
+    console.log(`Let's connect to your local ${colors.bold.blue('🎁 Redis')} instance.`);
+    console.log(`Please enter your local Redis credentials:`);
     console.log();
   } else {
     console.log();
-    console.log(`Let's add a remote ${colors.bold.blue('🐘 Postgres')} instance.`);
+    console.log(`Let's add a remote ${colors.bold.blue('🎁 Redis')} instance.`);
     console.log();
-    console.log(`Here are some popular Postgres hosts:`);
-    console.log(`     AWS RDS => ${colors.bold.underline.blue('https://console.aws.amazon.com/rds/home?#databases:')}`);
-    console.log(`     Vercel  => ${colors.bold.underline.blue('https://vercel.com/dashboard/stores')}`);
-    console.log(`     Neon    => ${colors.bold.underline.blue('https://console.neon.tech/app/projects')}`);
+    console.log(`Here are some popular Redis hosts:`);
+    console.log(`     AWS ElastiCache => ${colors.bold.underline.blue('https://us-west-2.console.aws.amazon.com/elasticache/home?#/redis')}`);
+    console.log(`     Vercel          => ${colors.bold.underline.blue('https://vercel.com/dashboard/stores?type=redis')}`);
+    console.log(`     Upstash         => ${colors.bold.underline.blue('https://console.upstash.com/')}`);
     console.log();
     let connectResults = await inquirer.prompt([
       {
@@ -38,11 +50,11 @@ module.exports = async (Instant, env, db, projectName = null) => {
         message: 'How would you like to connect to this database?',
         choices: [
           {
-            name: 'Connection string (e.g. postgres://[...])',
+            name: 'Connection string (e.g. redis://[...])',
             value: 'connectionString'
           },
           {
-            name: 'Enter manually: host / port / user / password / database',
+            name: 'Enter manually: host / port / user / password',
             value: 'manual'
           }
         ],
@@ -55,7 +67,7 @@ module.exports = async (Instant, env, db, projectName = null) => {
   let envCfg = null;
   let testCfg = null;
   if (inputType === 'connectionString') {
-    const connectRE = /postgres\:\/\/(\w+)(?:\:(.*))?@([a-z0-9\-\.]+):(\d+)\/([a-z0-9\-\_]+)/gi;
+    const connectRE = /redis(s)?\:\/\/(?:(\w+)(?:\:(.*))?@)?([a-z0-9\-\.]+):(\d+)(?:\/([a-z0-9\-\_]+))?/gi;
     let results = await inquirer.prompt([
       {
         name: 'connectionString',
@@ -66,7 +78,7 @@ module.exports = async (Instant, env, db, projectName = null) => {
           if (str.match(connectRE)) {
             return true;
           } else {
-            return 'Must match: postgres://user:password@url.to.database:port/database';
+            return 'Must match: redis://user:password@url.to.database:port/database';
           }
         }
       }
@@ -85,40 +97,26 @@ module.exports = async (Instant, env, db, projectName = null) => {
         name: 'port',
         type: 'input',
         message: 'port',
-        default: '5432'
+        default: '6379'
       },
       {
         name: 'user',
         type: 'input',
         message: 'user',
-        default: 'postgres'
+        default: 'default'
       },
       {
         name: 'password',
         type: 'input',
         message: 'password',
         default: ''
-      },
-      {
-        name: 'database',
-        type: 'input',
-        message: 'database',
-        default: suggestedName ? `${suggestedName}_development` : `postgres`
       }
     ];
     let results = await inquirer.prompt(inputs);
     envCfg = results;
     if (env === 'development') {
-      let testResults = await inquirer.prompt({
-        name: 'test_database',
-        type: 'input',
-        message: 'test database',
-        default: results.database.endsWith('_development')
-          ? results.database.replace(/_development$/gi, '_test')
-          : `${results.database}_test`
-      });
       testCfg = {...envCfg};
-      testCfg.database = testResults.test_database;
+      testCfg.database = '1';
     }
   }
 
@@ -129,17 +127,17 @@ module.exports = async (Instant, env, db, projectName = null) => {
       {
         name: 'tunnel',
         type: 'list',
-        message: `Is this Database inside of a VPC?\n` +
+        message: `Is this Redis instance inside of a VPC?\n` +
           `Does it require an SSH tunnel to connect to remotely?\n` +
           `If you aren't sure, the answer is probably no.`,
         default: false,
         choices: [
           {
-            name: `No, I can access it on the open web ${colors.dim(`(e.g. Vercel Postgres, Railway, Supabase, Neon)`)}`,
+            name: `No, I can access it on the open web ${colors.dim(`(e.g. Vercel KV, Upstash)`)}`,
             value: false
           },
           {
-            name: `Yes, it is inside of a VPC ${colors.dim(`(e.g. AWS RDS)`)}`,
+            name: `Yes, it is inside of a VPC ${colors.dim(`(e.g. AWS ElastiCache)`)}`,
             value: true
           }
         ],
@@ -162,7 +160,7 @@ module.exports = async (Instant, env, db, projectName = null) => {
               value: true
             },
             {
-              name: `No, I am deploying with a host outside of the VPC ${colors.dim(`(e.g. Vercel Serverless, Railway)`)}`,
+              name: `No, I am deploying with a host outside of the VPC ${colors.dim(`(e.g. Vercel, Railway)`)}`,
               value: false
             }
           ],
@@ -172,7 +170,7 @@ module.exports = async (Instant, env, db, projectName = null) => {
       envCfg.in_vpc = vpc.in_vpc;
       console.log();
       console.log(colors.bold.green(`Great!`));
-      console.log(`So your database is in a VPC, and you ${colors.bold(envCfg.in_vpc ? 'will' : 'will not')} be deploying your project inside that VPC.`);
+      console.log(`So your Redis instance is in a VPC, and you ${colors.bold(envCfg.in_vpc ? 'will' : 'will not')} be deploying your project inside that VPC.`);
       console.log(`We just need the SSH connection details of a server inside the VPC to be able to connect remotely.`);
       console.log();
       let tunnel = await inquirer.prompt([
@@ -211,54 +209,25 @@ module.exports = async (Instant, env, db, projectName = null) => {
     if (tmpCfg) {
 
       let envCfg = {...tmpCfg};
-
-      try {
-        await Instant.connect(envCfg, null);
-      } catch (e) {
-        if (e.message.startsWith('connection is insecure')) {
-          console.log(colors.bold(`DatabaseConfig:`) + ` Notice: Connection requires SSL, enabling ...`);
-          if (envCfg.connectionString) {
-            envCfg.connectionString += '?ssl=true';
-          } else {
-            envCfg.ssl = true;
-          }
-          await Instant.connect(envCfg, null);
-        } else if (e.message.endsWith(`Database "${envCfg.database}" does not exist.`)) {
-          let database = envCfg.database;
-          console.log();
-          console.log(colors.bold.yellow('Warning: ') + `Database "${database}" does not yet exist.`);
-          console.log(`However, you can create it now if you'd like.`);
-          console.log();
-          let results = await inquirer.prompt([
-            {
-              name: 'create',
-              type: 'confirm',
-              message: `Create database "${database}"?`
-            }
-          ]);
-          if (!results['create']) {
-            throw new Error(`Aborted. Database "${database}" does not exist.`);
-          } else {
-            console.log();
-            delete envCfg.database;
-            await Instant.disconnect();
-            await Instant.connect(envCfg, null);
-            await Instant.database().create(database);
-            await Instant.disconnect();
-            envCfg.database = database;
-            await Instant.connect(envCfg, null);
-          }
-        } else {
-          throw e;
-        }
+      if (envCfg.connectionString) {
+        envCfg.connectionString = envCfg.connectionString.replaceAll('redis:', 'rediss:');
+      } else {
+        envCfg.ssl = true;
       }
 
-      if (tmpEnv !== 'development') {
-        let migrationsEnabled = await Instant.Migrator.isEnabled();
-        if (!migrationsEnabled) {
-          Instant.Migrator.enableDangerous();
-          await Instant.Migrator.Dangerous.prepare();
-          Instant.Migrator.disableDangerous();
+      try {
+        await kv.connect(envCfg);
+      } catch (e) {
+        if (e.message.includes('Connection timeout')) {
+          console.log(colors.bold(`KVConfig:`) + ` Notice: Trying without SSL ...`);
+          if (envCfg.connectionString) {
+            envCfg.connectionString = envCfg.connectionString.replaceAll('rediss:', 'redis:');
+          } else {
+            envCfg.ssl = false;
+          }
+          await kv.connect(envCfg);
+        } else {
+          throw e;
         }
       }
 
@@ -267,42 +236,41 @@ module.exports = async (Instant, env, db, projectName = null) => {
       Instant.writeEnv(envFile, 'NODE_ENV', tmpEnv);
       for (const key in envCfg) {
         if (['connectionString', 'host', 'user', 'port', 'password', 'database'].includes(key)) {
-          const envVar = `${db}_database_${key}`.toUpperCase();
+          const envVar = `${db}_kv_${key}`.toUpperCase();
           Instant.writeEnv(envFile, envVar, envCfg[key]);
           envCfg[key] = `{{ ${envVar} }}`;
         } else if (key === 'tunnel') {
           const tunnel = envCfg[key];
           for (const tkey in tunnel) {
             if (['host', 'user', 'port'].includes(tkey)) {
-              const envVar = `${db}_database_tunnel_${tkey}`.toUpperCase();
+              const envVar = `${db}_kv_tunnel_${tkey}`.toUpperCase();
               Instant.writeEnv(envFile, envVar, tunnel[tkey]);
               tunnel[tkey] = `{{ ${envVar} }}`;
             }
           }
         }
       }
-      Instant.Config.write(tmpEnv, db, envCfg);
+      kv.Config.write(tmpEnv, db, envCfg);
 
       // ignore the private key file if it was added
       if (envCfg?.tunnel?.private_key) {
         fileWriter.writeLine('.gitignore', envCfg.tunnel.private_key);
       }
 
-      await Instant.disconnect();
+      await kv.disconnect();
 
     }
 
   }
 
   console.log();
-  console.log(colors.bold.green(`Success: `) + `Database for "${env}" added successfully to _instant/db.json["${env}"]["${db}"]!`);
+  console.log(colors.bold.green(`Success: `) + `Key-value store for "${env}" added successfully to _instant/db.json["${env}"]["${db}"]!`);
   if (testCfg) {
-    console.log(colors.bold.green(`Success: `) + `Database for "test" added successfully to _instant/db.json["test"]["${db}"]!`);
+    console.log(colors.bold.green(`Success: `) + `Key-value store for "test" added successfully to _instant/db.json["test"]["${db}"]!`);
   }
   console.log();
 
   const envFile = env === 'development' ? `.env` : `.env.${env}`;
-  envCfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
-  await Instant.connect(envCfg, null);
+  envCfg = kv.Config.read(env, db, Instant.readEnvObject(envFile));
 
 };

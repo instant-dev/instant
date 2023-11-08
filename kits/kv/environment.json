@@ -1,0 +1,9 @@
+[
+  {
+    "name": "MAIN_KV_CONNECTIONSTRING",
+    "description": "Your local Redis host for development",
+    "defaultValue": "redis://localhost:6379",
+    "testValuePrefix": "",
+    "testValueSuffix": "/1"
+  }
+]

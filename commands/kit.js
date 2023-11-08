@@ -191,7 +191,7 @@ class KitCommand extends Command {
       let value = envResult[envVar.name];
       console.log();
       Instant.writeEnv(`.env`, envVar.name, value);
-      Instant.writeEnv(`.env.test`, envVar.name, value);
+      Instant.writeEnv(`.env.test`, envVar.name, (envVar.testValuePrefix || '') + value + (envVar.testValueSuffix || ''));
       console.log();
     }
 
@@ -214,7 +214,7 @@ class KitCommand extends Command {
     }
 
     Instant.Migrator.disableDangerous();
-    Instant.disconnect();
+    await Instant.disconnect();
 
     console.log();
     console.log(`${colors.bold.green('Success:')} Kit "${colors.bold.green(kit.name)}" installed successfully!`);

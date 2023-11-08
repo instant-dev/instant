@@ -229,7 +229,7 @@ class InitCommand extends Command {
     await Instant.Migrator.Dangerous.prepare();
     await Instant.Migrator.Dangerous.initialize();
     Instant.Migrator.disableDangerous();
-    Instant.disconnect();
+    await Instant.disconnect();
 
     console.log();
     console.log(

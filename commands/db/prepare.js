@@ -41,10 +41,10 @@ class DbPrepareCommand extends Command {
         console.log(colors.bold.yellow(`Warning:`) + ` Database "${cfg.database}" does not exist... creating...`);
         let database = cfg.database;
         delete cfg.database;
-        Instant.disconnect();
+        await Instant.disconnect();
         await Instant.connect(cfg, null);
         await Instant.database().create(database);
-        Instant.disconnect();
+        await Instant.disconnect();
         cfg.database = database;
         await Instant.connect(cfg, null);
       } else {

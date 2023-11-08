@@ -29,7 +29,7 @@ await testEngine.initialize('./test/tests');
 
 // (4) Setup; create objects and infrastructure for tests
 // Arguments returned here will be sent to .finish()
-testEngine.setup(async () => {
+await testEngine.setup(async () => {
 
   console.log();
   console.log(`# Starting test gateway on localhost:${PORT} ... `);
@@ -59,5 +59,5 @@ if (args[0]) {
 // Receive arguments from .setup()
 testEngine.finish(async ({ gateway, Instant }) => {
   gateway.close();
-  Instant.disconnect();
+  await Instant.disconnect();
 });

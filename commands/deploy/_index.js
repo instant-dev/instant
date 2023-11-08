@@ -152,7 +152,7 @@ class DeployCommand extends Command {
     }
     console.log();
     Instant.Migrator.disableDangerous();
-    Instant.disconnect();
+    await Instant.disconnect();
 
     console.log();
     console.log(`Connecting to "${colors.bold.green(env)}" database ...`);
@@ -187,7 +187,7 @@ class DeployCommand extends Command {
     }
 
     Instant.Migrator.disableDangerous();
-    Instant.disconnect();
+    await Instant.disconnect();
     console.log();
     console.log(colors.bold(`Deploying:`) + ` Running deploy script for "${colors.bold.green(env)}" to "${colors.bold.green(configTarget)}" ...`);
     console.log();

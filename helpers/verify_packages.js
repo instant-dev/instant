@@ -16,6 +16,12 @@ module.exports = async (print = false) => {
     // @instant.dev/orm not installed
   }
   try {
+    pkgs.kv = require(path.join(process.cwd(), '/node_modules/@instant.dev/kv/package.json'));
+  } catch (e) {
+    // do nothing:
+    // @instant.dev/kv not installed
+  }
+  try {
     pkgs.api = require(path.join(process.cwd(), '/node_modules/@instant.dev/api/package.json'));
   } catch (e) {
     // do nothing:
@@ -50,6 +56,11 @@ module.exports = async (print = false) => {
       title: 'Instant ORM',
       name: pkgs.orm ? pkgs.orm.name : null,
       version: pkgs.orm ? pkgs.orm.version : null
+    },
+    {
+      title: 'Instant KV',
+      name: pkgs.kv ? pkgs.kv.name : null,
+      version: pkgs.kv ? pkgs.kv.version : null
     },
     {
       title: 'Instant API',

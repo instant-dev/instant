@@ -1,0 +1,12 @@
+{
+  "development": {
+    "main": {
+      "connectionString": "{{ MAIN_KV_CONNECTIONSTRING }}"
+    }
+  },
+  "test": {
+    "main": {
+      "connectionString": "{{ MAIN_KV_CONNECTIONSTRING }}"
+    }
+  }
+}
