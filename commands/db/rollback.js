@@ -21,6 +21,7 @@ class DbRollbackCommand extends Command {
   async run (params) {
 
     const Instant = await loadInstant(params, true);
+    const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -32,9 +33,14 @@ class DbRollbackCommand extends Command {
 
     let steps = parseInt(params.vflags['steps']) || 1;
 
+    let env = params.vflags.env || environment;
+    let db = 'main';
+    const envFile = env === 'development' ? `.env` : `.env.${env}`;
+    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
+
     console.log();
     Instant.enableLogs(2);
-    await Instant.connect();
+    await Instant.connect(cfg);
 
     let hasMigrationsEnabled = await Instant.Migrator.isEnabled();
     if (!hasMigrationsEnabled) {
