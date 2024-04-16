@@ -49,7 +49,8 @@ class DbExtCommand extends Command {
     let env = params.vflags.env || environment;
     let db = 'main';
     const envFile = env === 'development' ? `.env` : `.env.${env}`;
-    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
+    Instant.useEnvObject(envFile);
+    let cfg = Instant.Config.read(env, db);
 
     console.log();
     console.log(`Managing extension "${colors.bold.blue(name)}" for environment "${colors.bold(env)}" ...`);

@@ -30,7 +30,8 @@ class DbPrepareCommand extends Command {
       );
     }
 
-    let cfg = Instant.Config.read('development', 'main', Instant.readEnvObject(`.env`));
+    Instant.useEnvObject(`.env`);
+    let cfg = Instant.Config.read('development', 'main');
 
     console.log();
     Instant.enableLogs(2);
