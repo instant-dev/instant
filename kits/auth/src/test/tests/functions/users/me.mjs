@@ -1,4 +1,4 @@
-import chai from 'chai';
+const chai = await import('chai');
 const expect = chai.expect;
 
 export const name = `Endpoint tests: /users/me/`;
