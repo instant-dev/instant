@@ -44,7 +44,8 @@ class GenerateEndpointCommand extends Command {
 
     const env = environment;
     const db = 'main';
-    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(`.env`));
+    Instant.useEnvObject(`.env`);
+    let cfg = Instant.Config.read(env, db);
 
     Instant.enableLogs(2);
     // Do not load a schema
