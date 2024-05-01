@@ -1,6 +1,6 @@
 import InstantORM from '@instant.dev/orm';
 
-import chai from 'chai';
+const chai = await import('chai');
 const expect = chai.expect;
 
 const Instant = await InstantORM.connectToPool();
