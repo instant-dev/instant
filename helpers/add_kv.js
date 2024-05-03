@@ -210,7 +210,10 @@ module.exports = async (Instant, env, db) => {
 
       let envCfg = {...tmpCfg};
       if (envCfg.connectionString) {
-        envCfg.connectionString = envCfg.connectionString.replaceAll('redis:', 'rediss:');
+        if (!envCfg.tunnel) {
+          envCfg.connectionString = envCfg.connectionString.replaceAll('redis:', 'rediss:');
+        }
+        // otherwise do nothing, but don't set .ssl
       } else {
         envCfg.ssl = true;
       }
@@ -218,8 +221,8 @@ module.exports = async (Instant, env, db) => {
       try {
         await kv.connect(envCfg);
       } catch (e) {
-        if (e.message.includes('Connection timeout')) {
-          console.log(colors.bold(`KVConfig:`) + ` Notice: Trying without SSL ...`);
+        if (e.message.includes('Connection timeout') && !envCfg.tunnel) {
+          console.log(colors.bold(`KVConfig:`) + ` Notice: Connection timeout, trying without SSL ...`);
           if (envCfg.connectionString) {
             envCfg.connectionString = envCfg.connectionString.replaceAll('rediss:', 'redis:');
           } else {
