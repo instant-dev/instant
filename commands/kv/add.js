@@ -45,6 +45,7 @@ class KVAddCommand extends Command {
     }
 
     Instant.enableLogs(2);
+    Instant.useEnvObject(`.env`); // load env vars to not blow a gasket
     await addKV(Instant, env, db);
 
     return void 0;

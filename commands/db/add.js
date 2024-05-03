@@ -50,6 +50,7 @@ class DbAddCommand extends Command {
     }
 
     Instant.enableLogs(2);
+    Instant.useEnvObject(`.env`); // load env vars to not blow a gasket
     await addDatabase(Instant, env, db);
 
     return void 0;
