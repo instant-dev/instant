@@ -29,6 +29,7 @@ class DeployConfigCommand extends Command {
 
     const Instant = await loadInstant(params, true);
     const suggestedDeployTarget = fileWriter.determineDeployTarget();
+    const hasDb = fs.existsSync('_instant/db.json');
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -104,9 +105,14 @@ class DeployConfigCommand extends Command {
     console.log();
     console.log(`📦 Which environment would you like to configure deployments for?`);
     console.log();
-    const dbCfg = Instant.Config.load();
+  
+    let dbCfg = {};
+    if (hasDb) {
+      dbCfg = Instant.Config.load();
+    }
+
     const envList = [].concat(
-      Object.keys(dbCfg)
+      Object.keys({})
         .filter(name => ['development', 'staging', 'production'].indexOf(name) === -1),
       'staging',
       'production'

@@ -32,6 +32,7 @@ class DeployCommand extends Command {
   async run (params) {
 
     const Instant = await loadInstant(params, true);
+    const hasDb = fs.existsSync('_instant/db.json');
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -93,9 +94,6 @@ class DeployCommand extends Command {
       }
     }
 
-    const envFile = env === 'development' ? `.env` : `.env.${env}`;
-    const cfg = Instant.Config.read(env, 'main', Instant.readEnvObject(envFile));
-
     /**
      * Check git status
      */
@@ -139,66 +137,78 @@ class DeployCommand extends Command {
       }
     }
 
-    console.log();
-    console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(configTarget)}" to environment "${colors.bold.green(env)}"...`);
-    console.log();
+    if (hasDb) {
 
-    Instant.enableLogs(2);
-    Instant.useEnvObject(`.env`); // set local env first
-    await Instant.connect();
-    Instant.Migrator.enableDangerous();
-    let canMigrate = await checkMigrationState(Instant);
-    if (!canMigrate) {
-      throw new Error(`Your local migration state must be up to date to deploy`);
-    }
-    console.log();
-    Instant.Migrator.disableDangerous();
-    await Instant.disconnect();
+      const envFile = env === 'development' ? `.env` : `.env.${env}`;
+      const cfg = Instant.Config.read(env, 'main', Instant.readEnvObject(envFile));
 
-    console.log();
-    console.log(`Connecting to "${colors.bold.green(env)}" database ...`);
-    console.log();
-
-    await Instant.connect(cfg);
-    Instant.Migrator.enableDangerous();
-
-    console.log();
-    console.log(`Retrieving "${colors.bold.green(env)}" migration state ...`);
-    console.log();
-
-    let state = await Instant.Migrator.Dangerous.getMigrationState();
-    let diffs = await Instant.Migrator.Dangerous.getTextDiffs();
-
-    console.log(`Current migration state for "${colors.bold.green(env)}" is: ${colors.bold.blue(state.status)}`);
-    console.log();
-    console.log(diffs);
-    console.log();
-
-    if (
-      state.status !== 'synced' &&
-      state.status !== 'filesystem_ahead'
-    ) {
-      console.log(`To rollback the database to last synced point and apply outstanding migrations:`);
       console.log();
-      console.log(colors.bold.grey(`\t$ instant db:rollbackSync --env ${env}`));
-      console.log(colors.bold.grey(`\t$ instant db:migrate --env ${env}`));
-      throw new Error(`Can only deploy when remote state is "synced" or "filesystem_ahead"`);
-    } else if (state.status === 'filesystem_ahead') {
-      await Instant.Migrator.Dangerous.migrate();
+      console.log(colors.bold(`Migrating:`) + ` project via "${colors.bold.green(configTarget)}" to environment "${colors.bold.green(env)}"...`);
+      console.log();
+
+      Instant.enableLogs(2);
+      Instant.useEnvObject(`.env`); // set local env first
+      await Instant.connect();
+      Instant.Migrator.enableDangerous();
+      let canMigrate = await checkMigrationState(Instant);
+      if (!canMigrate) {
+        throw new Error(`Your local migration state must be up to date to deploy`);
+      }
+      console.log();
+      Instant.Migrator.disableDangerous();
+      await Instant.disconnect();
+
+      console.log();
+      console.log(`Connecting to "${colors.bold.green(env)}" database ...`);
+      console.log();
+
+      await Instant.connect(cfg);
+      Instant.Migrator.enableDangerous();
+
+      console.log();
+      console.log(`Retrieving "${colors.bold.green(env)}" migration state ...`);
+      console.log();
+
+      let state = await Instant.Migrator.Dangerous.getMigrationState();
+      let diffs = await Instant.Migrator.Dangerous.getTextDiffs();
+
+      console.log(`Current migration state for "${colors.bold.green(env)}" is: ${colors.bold.blue(state.status)}`);
+      console.log();
+      console.log(diffs);
+      console.log();
+
+      if (
+        state.status !== 'synced' &&
+        state.status !== 'filesystem_ahead'
+      ) {
+        console.log(`To rollback the database to last synced point and apply outstanding migrations:`);
+        console.log();
+        console.log(colors.bold.grey(`\t$ instant db:rollbackSync --env ${env}`));
+        console.log(colors.bold.grey(`\t$ instant db:migrate --env ${env}`));
+        throw new Error(`Can only deploy when remote state is "synced" or "filesystem_ahead"`);
+      } else if (state.status === 'filesystem_ahead') {
+        await Instant.Migrator.Dangerous.migrate();
+      }
+
+      Instant.Migrator.disableDangerous();
+      await Instant.disconnect();
+
     }
 
-    Instant.Migrator.disableDangerous();
-    await Instant.disconnect();
     console.log();
     console.log(colors.bold(`Deploying:`) + ` Running deploy script for "${colors.bold.green(env)}" to "${colors.bold.green(configTarget)}" ...`);
     console.log();
 
-    // Only deploy environment-specific database info
-    const dbPathname = Instant.Config.pathname();
-    const dbFile = fs.readFileSync(Instant.Config.pathname());
-    const dbObj = Instant.Config.load();
-    Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
-    fs.writeFileSync(dbPathname, JSON.stringify(dbObj, null, 2));
+    let dbPathname;
+    let dbFile;
+    if (hasDb) {
+      // Only deploy environment-specific database info
+      dbPathname = Instant.Config.pathname();
+      dbFile = fs.readFileSync(Instant.Config.pathname());
+      const dbObj = Instant.Config.load();
+      Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
+      fs.writeFileSync(dbPathname, JSON.stringify(dbObj, null, 2));
+    }
 
     let deployError = null;
 
@@ -293,8 +303,10 @@ class DeployCommand extends Command {
       deployError = e;
     }
 
-    // Restore original database file
-    fs.writeFileSync(dbPathname, dbFile);
+    if (hasDb) {
+      // Restore original database file
+      fs.writeFileSync(dbPathname, dbFile);
+    }
 
     if (deployError) {
       throw deployError;
