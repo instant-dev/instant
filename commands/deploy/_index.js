@@ -144,6 +144,7 @@ class DeployCommand extends Command {
     console.log();
 
     Instant.enableLogs(2);
+    Instant.useEnvObject(`.env`); // set local env first
     await Instant.connect();
     Instant.Migrator.enableDangerous();
     let canMigrate = await checkMigrationState(Instant);
