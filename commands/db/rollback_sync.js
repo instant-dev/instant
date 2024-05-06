@@ -24,6 +24,7 @@ class DbRollbackSyncCommand extends Command {
   async run (params) {
 
     const Instant = await loadInstant(params, true);
+    Instant.Plugins.disable();
     const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
