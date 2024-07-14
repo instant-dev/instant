@@ -14,14 +14,18 @@ class DbBootstrapCommand extends Command {
       description: 'Bootstraps database: empties database, runs all filesystem migrations, then seeds data',
       args: [],
       flags: {},
-      vflags: {}
+      vflags: {
+        'ext': 'List of extensions to bootstrap with'
+      }
     };
   }
 
   async run (params) {
 
+    const extensions = params.vflags.ext || [];
+
     const Instant = await loadInstant(params, true);
-    Instant.Plugins.disable();
+    // Instant.Plugins.disable();
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
@@ -55,7 +59,7 @@ class DbBootstrapCommand extends Command {
     }
     Instant.Migrator.enableDangerous();
     const seed = Instant.Migrator.Dangerous.filesystem.readSeed();
-    await Instant.Migrator.Dangerous.bootstrap(seed);
+    await Instant.Migrator.Dangerous.bootstrap(seed, extensions);
     Instant.Migrator.disableDangerous();
     console.log();
 
