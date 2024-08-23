@@ -12,7 +12,6 @@ class ServeCommand extends Command {
   }
 
   help () {
-    const environment = process.env.NODE_ENV || 'development';
     return {
       description: 'Starts a development server using package.json["scripts"]["start"]',
       args: [],
@@ -24,7 +23,6 @@ class ServeCommand extends Command {
   async run (params) {
 
     const Instant = await loadInstant(params, true);
-    const environment = process.env.NODE_ENV || 'development';
 
     if (!Instant.isFilesystemInitialized()) {
       throw new Error(
