@@ -1,6 +1,8 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
 const childProcess = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const loadInstant = require('../helpers/load_instant.js');
 
@@ -48,19 +50,30 @@ class SqlCommand extends Command {
       }
     }
 
-    const env = (params.vflags.env || [])[0] || environment;
+    let env = (params.vflags.env || [])[0] || environment;
+    let db = 'main';
     const envFile = env === 'development' ? `.env` : `.env.${env}`;
-    let cfg = Instant.Config.read(env, db, Instant.readEnvObject(envFile));
+    Instant.useEnvObject(envFile);
+    let cfg = Instant.Config.read(env, db);
 
     console.log();
-    console.log(`Running task "${colors.bold.blue(taskName)}" with environment "${colors.bold.green(env)}" ...`);
+    console.log(`Connecting to environment "${colors.bold.green(env)}" ...`);
     console.log();
 
-    const taskCommand = `node ${taskPath}`;
-    const result = childProcess.spawnSync(taskCommand, { stdio: 'inherit', env: { ...cfg }});
-    if (result.status !== 0) {
-      throw new Error(`Error running task "${taskName}"`);
+    Instant.enableLogs(2);
+    await Instant.connect(cfg);
+
+    console.log();
+    console.log(`Running task "${colors.bold.blue(taskName)}" ...`);
+    console.log();
+
+    const task = await import(taskPath);
+    if (typeof task.run !== 'function') {
+      throw new Error(`Task "${taskName}" must have a "run" function`);
     }
+
+    // Run task...
+    await task.run(Instant);
 
     return void 0;
 

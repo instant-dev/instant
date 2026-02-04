@@ -34,7 +34,7 @@ class DbRollbackCommand extends Command {
 
     let steps = parseInt(params.vflags['steps']) || 1;
 
-    let env = params.vflags.env || environment;
+    let env = (params.vflags.env || [])[0] || environment;
     let db = 'main';
     const envFile = env === 'development' ? `.env` : `.env.${env}`;
     Instant.useEnvObject(envFile);

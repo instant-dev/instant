@@ -47,7 +47,7 @@ class DbExtCommand extends Command {
       throw new Error(`Cannot both enable and disable an extension`);
     }
 
-    let env = params.vflags.env || environment;
+    let env = (params.vflags.env || [])[0] || environment;
     let db = 'main';
     const envFile = env === 'development' ? `.env` : `.env.${env}`;
     Instant.useEnvObject(envFile);
