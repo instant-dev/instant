@@ -1,6 +1,6 @@
 const { Command } = require('cmnd');
 const colors = require('colors/safe');
-const childProcess = require('child_process');
+const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 
@@ -37,9 +37,40 @@ class SqlCommand extends Command {
       );
     }
 
-    const taskName = params.args[0];
+    let env = (params.vflags.env || [])[0] || environment;
+    let taskName = (params.args[0] || '').trim();
+
     if (!taskName) {
-      throw new Error(`Must specify a task name`);
+
+      const filenames = fs.readdirSync(path.join(process.cwd(), 'tasks')).filter(filename => filename.endsWith('.js') || filename.endsWith('.mjs'));
+      if (filenames.length === 0) {
+        throw new Error(`No tasks found in "tasks/" directory.`);
+      }
+      const taskNames = filenames.map(filename => {
+        return filename.split('.').slice(0, -1).join('.');
+      });
+
+      console.log();
+      console.log(`⚡️ Choose a task to run in environment "${colors.bold.green(env)}" ...`);
+      console.log();
+      const taskResult = await inquirer.prompt([
+        {
+          name: 'taskName',
+          type: 'list',
+          message: `Which task would you like to run?`,
+          default: true,
+          choices: [].concat(
+            taskNames.map(taskName => ({ name: taskName, value: taskName })),
+            [ { name: `❌ cancel`, value: null } ]
+          )
+        }
+      ]);
+      taskName = taskResult.taskName;
+
+      if (!taskName) {
+        return void 0;
+      }
+
     }
 
     let taskPath = path.join(process.cwd(), 'tasks', taskName + '.js');
@@ -50,7 +81,6 @@ class SqlCommand extends Command {
       }
     }
 
-    let env = (params.vflags.env || [])[0] || environment;
     let db = 'main';
     const envFile = env === 'development' ? `.env` : `.env.${env}`;
     Instant.useEnvObject(envFile);
