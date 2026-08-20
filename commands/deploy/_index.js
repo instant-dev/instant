@@ -199,17 +199,6 @@ class DeployCommand extends Command {
     console.log(colors.bold(`Deploying:`) + ` Running deploy script for "${colors.bold.green(env)}" to "${colors.bold.green(configTarget)}" ...`);
     console.log();
 
-    let dbPathname;
-    let dbFile;
-    if (hasDb) {
-      // Only deploy environment-specific database info
-      dbPathname = Instant.Config.pathname();
-      dbFile = fs.readFileSync(Instant.Config.pathname());
-      const dbObj = Instant.Config.load();
-      Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
-      fs.writeFileSync(dbPathname, JSON.stringify(dbObj, null, 2));
-    }
-
     let deployError = null;
 
     try {
@@ -227,8 +216,17 @@ class DeployCommand extends Command {
         const EncryptionTools = InstantAPI.EncryptionTools;
         const dm = new DeploymentManager(`.deployconfig.${env}`);
         const et = new EncryptionTools();
+        const packageFiles = dm.readPackageFiles(process.cwd());
+        if (hasDb) {
+          // Only include environment-specific database info in the package.
+          // Keep the source file untouched so interrupted deploys are safe.
+          const dbObj = Instant.Config.load();
+          Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
+          const dbFilename = path.relative(process.cwd(), Instant.Config.pathname()).split(path.sep).join('/');
+          packageFiles[dbFilename] = Buffer.from(JSON.stringify(dbObj, null, 2));
+        }
         const encryptResult = et.encryptEnvFileFromPackage(
-          dm.readPackageFiles(process.cwd()),
+          packageFiles,
           `.env.${env}`,
           `.env`,
           /^\.env\..*$/
@@ -283,29 +281,41 @@ class DeployCommand extends Command {
           file,
           Buffer.from(imports.join('\n'))
         ]);
-        fs.writeFileSync(rootFile, tmpFile);
+        let dbPathname;
+        let dbFile;
+        if (hasDb) {
+          // Vercel packages the working tree directly, so this target still
+          // requires a temporary database file that is restored in finally.
+          dbPathname = Instant.Config.pathname();
+          dbFile = fs.readFileSync(dbPathname);
+          const dbObj = Instant.Config.load();
+          Object.keys(dbObj).filter(key => key !== env).forEach(key => delete dbObj[key]);
+          dbFile = {
+            original: dbFile,
+            deployment: Buffer.from(JSON.stringify(dbObj, null, 2))
+          };
+        }
         try {
+          if (hasDb) {
+            fs.writeFileSync(dbPathname, dbFile.deployment);
+          }
+          fs.writeFileSync(rootFile, tmpFile);
           console.log();
           if (env === 'production') {
             childProcess.spawnSync(`vercel --prod`, {stdio: 'inherit', shell: true});
           } else {
             childProcess.spawnSync(`vercel`, {stdio: 'inherit', shell: true});
           }
+        } finally {
           // restore original file
           fs.writeFileSync(rootFile, file);
-        } catch (e) {
-          // restore original file
-          fs.writeFileSync(rootFile, file);
-          throw e;
+          if (hasDb) {
+            fs.writeFileSync(dbPathname, dbFile.original);
+          }
         }
       }
     } catch (e) {
       deployError = e;
-    }
-
-    if (hasDb) {
-      // Restore original database file
-      fs.writeFileSync(dbPathname, dbFile);
     }
 
     if (deployError) {
